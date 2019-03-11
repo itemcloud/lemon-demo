@@ -226,7 +226,8 @@ class itemManager {
 	function handleItemUpload($client) {
 		 if (isset($_POST['itc_type'])) {
 			$insertOk = "1";
-
+			$target_dir = "files/";
+			
 			$class = $_POST['itc_type'];			
 			$title = (isset($_POST['itc_title'])) ? $_POST['itc_title'] : "";
 			$info = (isset($_POST['itc_info'])) ? $_POST['itc_info'] : "";
@@ -238,19 +239,15 @@ class itemManager {
 
 		 if(isset($_FILES["itc_file"])) {
 		 	if ($class == 3) { //FILE
-				$target_dir = "files/";
 				$filesize = 10485760; //10MB
 				$filetypes = [0 => "pdf", 1 => "zip"];
 			} elseif ($class == 4) { //PHOTO
-				$target_dir = "photo/";
 				$filesize = 10485760; //10MB
 				$filetypes = [0 => "jpg", 1 => "jpeg", 2 => "png", 3 => "gif"];
 			} elseif ($class == 5) { //AUDIO
-				$target_dir = "audio/";
 				$filesize = 10485760; //10MB
 				$filetypes = [0 => "mp3"];
 			} elseif ($class == 6) { //VIDEO
-				$target_dir = "video/";
 				$filesize = 10485760; //10MB				
 				$filetypes = [0 => "mp4"];
 			}
