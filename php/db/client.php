@@ -21,7 +21,7 @@
 ** @license    http://www.gnu.org/licenses/gpl.html Open Source GPL 3.0 license
 */
 
-require_once($_ROOTdir . '/php/db/core.php');
+require_once($_ROOTdir . '/core.php');
 
 /* -------------------------------------------------------- **
 ** --------------------- CLIENT CLASS --------------------- **

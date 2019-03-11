@@ -21,8 +21,8 @@
 ** @license    http://www.gnu.org/licenses/gpl.html Open Source GPL 3.0 license
 */
 
-$_ROOTdir = $_SERVER['DOCUMENT_ROOT'] . '/lemon';
-require_once($_ROOTdir . '/php/db/client.php');
+$_ROOTdir = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF']);
+require_once($_ROOTdir . '/client.php');
 
 //DATABASE::Connection
 $client = new Client();

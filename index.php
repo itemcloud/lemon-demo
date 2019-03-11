@@ -21,12 +21,11 @@
 ** @license    http://www.gnu.org/licenses/gpl.html Open Source GPL 3.0 license
 */
 
-$_ROOTdir = $_SERVER['DOCUMENT_ROOT'] . '/lemon';
+$_ROOTdir = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF']).'/php/db';
 $_ROOTweb = "http://".$_SERVER['HTTP_HOST'].dirname($_SERVER['PHP_SELF'])."/";
 
-require_once($_ROOTdir . '/php/db/client.php');
-require_once($_ROOTdir . '/php/db/display.php');
-
+require_once($_ROOTdir . '/client.php');
+require_once($_ROOTdir . '/display.php');
 
 $client = new Client();
 $client->openConnection();

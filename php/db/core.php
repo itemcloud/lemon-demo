@@ -32,8 +32,8 @@ Class Core {
 	function __construct() {
 
 	  $this->host = 'localhost';
-	  $this->user = '';
-	  $this->password = '';
+	  $this->user = 'icloud-stem';
+	  $this->password = 'berry8L3#D3R';
 	  $this->db = 'itemcloud-db';  
 	  $this->usercookie = 'ICC:UID';
 	}
