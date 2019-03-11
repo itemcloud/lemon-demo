@@ -21,6 +21,9 @@
 ** @license    http://www.gnu.org/licenses/gpl.html Open Source GPL 3.0 license
 */
 
+//DATABASE: Configuration
+include('config.php');
+
 /* -------------------------------------------------------- **
 ** ---------------------- CORE CLASS ---------------------- **
 ** -------------------------------------------------------- */
@@ -30,11 +33,11 @@ Class Core {
 	
 	//DATABASE::Connection
 	function __construct() {
-
-	  $this->host = 'localhost';
-	  $this->user = 'icloud-stem';
-	  $this->password = 'berry8L3#D3R';
-	  $this->db = 'itemcloud-db';  
+	  global $CONFIG;
+	  $this->host = $CONFIG['host'];
+	  $this->user = $CONFIG['user'];
+	  $this->password = $CONFIG['password'];
+	  $this->db = $CONFIG['db'];
 	  $this->usercookie = 'ICC:UID';
 	}
 
