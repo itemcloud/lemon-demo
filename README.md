@@ -8,6 +8,7 @@ Create a mysql database: 'itemcloud-db'.
 Import mysql database: 'itemcloud-db.sql'.
 Assign a user to mysql database: (INSERT, SELECT, UPDATE, DELETE).
 Update 'core.php' file: user and password.
+Create a directory: 'files'
 
 Remove 'itemcloud-db.sql'.
 
