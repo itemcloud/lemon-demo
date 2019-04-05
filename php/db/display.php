@@ -214,7 +214,7 @@ class pageManager extends Document {
 		
 		foreach($classes as $class_form) {
 			
-			$form_input = "<input type=\"hidden\" name=\"itc_type\" value=\"" . $class_form['class_id'] . "\"/>";
+			$form_input = "<input type=\"hidden\" name=\"itc_class_id\" value=\"" . $class_form['class_id'] . "\"/>";
 
 			$functions = " action=\"add.php\" method=\"post\"";			
 			if(isset($class_form['types']) && count($class_form['types'])) {
@@ -334,8 +334,8 @@ class pageManager extends Document {
 		
 		$i_html  = "<div class='" . $box_class . "'>";
 		if($i['title']) { $i_html .= "<div class=\"item-title\" onclick=\"window.location='./?id=" . $i['item_id'] . "';\">" . $i['title'] .  "</div><hr />"; }
-		$i_html .= $file_display;
 		if($i['info']) { $i_html .= '<div class="item-info">' . nl2br($info) . '</div><hr />'; }
+		$i_html .= $file_display;
 		$i_html .= "<div onclick=\"window.location='./?user=" . $i['user_id'] . "';\"><span class=\"item-user\"></span></div>";
 		$i_html .= '<div style="float: left;"><div class="item-link"><a href="./?id=' . $i['item_id'] . '">' . $_ROOTweb . '?item='  . $i['item_id'] . '</a></div>';
 		$i_html .= '<div class="item-date">' . $date->date_time . '</div></div>' . $tools;

@@ -35,7 +35,7 @@ $owner = ($profile['user_id'] == $client->profile['user_id']) ? true : false;
 $itemManager = $client->itemManager();
 $types = $itemManager->getItemTypes();
 $classes = $itemManager->getItemClasses();
-$message = (isset($_POST['itc_type'])) ? $itemManager->handleItemUpload($client) : false;
+$message = (isset($_POST['itc_class_id'])) ? $itemManager->handleItemUpload($classes, $client) : false;
 $client->closeConnection();
 	      
 $pageManager = new pageManager(NULL);

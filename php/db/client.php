@@ -184,7 +184,8 @@ class itemManager {
 				if(!isset($class_loot_array[$class_id])) {
 					$class_loot_array[$class_id]['class_name'] = $class['class_name'];
 					$class_loot_array[$class_id]['class_id'] = $class_id;
-				    $class_loot_array[$class_id]['types'] = array();				
+				    $class_loot_array[$class_id]['types'] = array();
+				    $class_loot_array[$class_id]['ext'] = array();				
 					$class_loot_array[$class_id]['nodes'] = array();
 				}
 				$class_loot_array[$class_id]['nodes'][] = $class;
@@ -199,6 +200,7 @@ class itemManager {
 				if($type_loot) {
 					while($type=$type_loot->fetch_assoc()) {
 						array_push($class_loot_array[$class_id]['types'], $type['file_type']);
+						array_push($class_loot_array[$class_id]['ext'], $type['ext']);
 					}
 				}
 			}
@@ -223,63 +225,65 @@ class itemManager {
 		return $type_loot_array;
 	}
 
-	function handleItemUpload($client) {
-		 if (isset($_POST['itc_type'])) {
+	function handleItemUpload($classes, $client) {
+		 if (isset($_POST['itc_class_id'])) {
 			$insertOk = "1";
-			$target_dir = "files/";
+			$target_dir = "files/";			
+			$filesize = 10485760; //10MB
 			
-			$class = $_POST['itc_type'];			
+			$class = $_POST['itc_class_id'];			
 			$title = (isset($_POST['itc_title'])) ? $_POST['itc_title'] : "";
 			$info = (isset($_POST['itc_info'])) ? $_POST['itc_info'] : "";
 			$file = (isset($_POST['itc_file'])) ? $_POST['itc_file'] : "";
 
-			$message = "Sorry, your item could not be added.";
-			if($class == 1 && !$title) { $insertOk = "0"; return $message; }
-			if($class == 2 && !$file) {  $insertOk = "0"; return $message; }
-
-		 if(isset($_FILES["itc_file"])) {
-		 	if ($class == 3) { //FILE
-				$filesize = 10485760; //10MB
-				$filetypes = [0 => "pdf", 1 => "zip"];
-			} elseif ($class == 4) { //PHOTO
-				$filesize = 10485760; //10MB
-				$filetypes = [0 => "jpg", 1 => "jpeg", 2 => "png", 3 => "gif"];
-			} elseif ($class == 5) { //AUDIO
-				$filesize = 10485760; //10MB
-				$filetypes = [0 => "mp3"];
-			} elseif ($class == 6) { //VIDEO
-				$filesize = 10485760; //10MB				
-				$filetypes = [0 => "mp4"];
-			}
-			
-			$tmp_file = new uploadManager(
-				$_FILES["itc_file"],
-				$target_dir,
-				$filesize,
-				$filetypes);
-
-			$tmp_file->handleUploadRequest();
-			$tmp_file->uploadFile();
+			foreach($classes as $class_form) {
+				$class_id = $class_form['class_id'];
 				
-			$file = $tmp_file->target_file;	
-			if($tmp_file->uploadOk == "0") {
-				$insertOk = "0";
-			} $message = $tmp_file->errorStatus;
-
-			if($class != 4 && !$title) {
-			   $title = $_FILES["itc_file"]["name"];
+				//only handle the posted class
+				if($class == $class_id) {
+					foreach($class_form['nodes'] as $nodes){					
+						if(isset($_FILES["itc_file"]) && $nodes['node_name'] == 'file') {
+							if(count($class_form['ext'])) {
+								$file_extensions = $class_form['ext'];
+							}
+						} else if(!$_POST['itc_'.$nodes['node_name']] && $nodes['required'] != NULL){
+							//detect required nodes								
+							$message = "Sorry, your item could not be added.";	
+							$insertOk = "0"; return $message;
+						}							
+					}
+				}
 			}
-		}
+				
+			 if(isset($_FILES["itc_file"])) {
+				$tmp_file = new uploadManager(
+					$_FILES["itc_file"],
+					$target_dir,
+					$filesize,
+					$file_extensions);
 
-		if($insertOk) {
-			$id = $this->insertItem($class, $title, $info, $file);
-			if(isset($id)) {
-			  $this->insertUserItem($client->profile['user_id'], $id);
-			  return "Go to new item: " . "<a href=\"./?id=$id\">ITEM $id</a>";
+				$tmp_file->handleUploadRequest();
+				$tmp_file->uploadFile();
+					
+				$file = $tmp_file->target_file;	
+				if($tmp_file->uploadOk == "0") {
+					$insertOk = "0";
+				} $message = $tmp_file->errorStatus;
+
+				if($class != 4 && !$title) {
+				   $title = $_FILES["itc_file"]["name"];
+				}
 			}
-		} else {
-		        return $message;
-		}
+
+			if($insertOk) {
+				$id = $this->insertItem($class, $title, $info, $file);
+				if(isset($id)) {
+				  $this->insertUserItem($client->profile['user_id'], $id);
+				  return "Go to new item: " . "<a href=\"./?id=$id\">ITEM $id</a>";
+				}
+			} else {
+					return $message;
+			}
 		}
 	}
 
