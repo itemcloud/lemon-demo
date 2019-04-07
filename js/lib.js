@@ -1,6 +1,79 @@
 //DOM Constants
 var md5_stamp;
 
+class OmniBox {
+	constructor(class_array, parent_div) {
+		this.class_array = class_array;
+		this.active_class = Object.keys(class_array)[0];
+		this.parent_div = parent_div;
+	}
+	
+	toggle = function (class_id) {
+		this.active_class = class_id;
+		dom(this.parent_div).innerHTML = this.class_form_HTML(this.class_array[class_id]);
+	}
+	
+	class_form_HTML = function (class_form) {
+		var form_input = "<input type=\"hidden\" name=\"itc_class_id\" value=\"" + class_form['class_id'] + "\"/>";
+		var functions = " action=\"add.php\" method=\"post\"";	
+			
+		for (var i = 0; i < class_form.nodes.length; i++) {
+			var node = class_form.nodes[i];
+			
+			if(class_form['types'].length > 0 && node['node_name'] == "file") {
+				var functions = " action=\"add.php\" method=\"post\" enctype=\"multipart/form-data\"";
+
+				var types = class_form['types'];
+				form_input += "<input type=\"file\" class=\"form_button\" name=\"itc_" + node['node_name'] + "\" id=\"itc_" + node['node_name'] + "\" accept=\"";
+
+				//accepted filetypes
+				form_input += types.join();
+				form_input += "\"/><div><small>Choose " + types.join() + " only.</small></div>";
+				form_input += "<hr />";
+
+			} else {
+				if(!node['required']) {
+					var domid = "itc_" + node['node_name'] + "_" + class_form['class_id'];
+					var domid_add = "itc_add_" + node['node_name'] + "_" + class_form['class_id'];
+
+					var show = "this.style.display='none';"
+						  + "dom('" + domid + "').style.display = 'block'";
+					var hide = "dom('" + domid_add + "').style.display = 'block';"
+						  + "dom('" + domid + "').style.display = 'none';"
+						  + "dom('" + domid + "_txt').value = '';";
+					
+					form_input += "<div id=\"" + domid_add + "\" onclick=\"" + show + "\"><a>+ <u>Add " + node['node_name'] + "</u></a></div>";
+					form_input += "<div id=\"" + domid + "\" style=\"display: none\"><textarea id=\"" + domid + "_txt\" class=\"form wider\" name=\"itc_" + node['node_name'] + "\" onkeyup=\"auto_expand(this)\" maxlength=\"" + node['length']  + "\" style=\"vertical-align: bottom\"></textarea> <span onClick=\"" + hide + "\" class=\"item-tools\">x</span></div>";
+					form_input += "<hr />";
+				} else {
+					form_input += "<textarea class=\"form wider\" name=\"itc_" + node['node_name'] + "\" onkeyup=\"auto_expand(this)\" maxlength=\"" + node['length'] + "\"></textarea>";
+					form_input += "<hr />";
+				}
+			}
+			
+			var upload = "<input class=\"form_button\" type=\"submit\" name=\"submit\" value=\"NEXT >\"/><br />";			
+		}
+
+		var inactive = "_inactive";
+		var toggleItemClass = "";
+		var x;
+		for (x in this.class_array) {
+			var item_class = this.class_array[x];
+			if(item_class['class_id'] == this.active_class) { inactive = ""; }	
+			toggleItemClass += "<input class=\"item_tools" + inactive + "\" type=\"button\" onclick=\"OmniController.toggle('" + item_class['class_id'] + "')\" value=\"" + item_class['class_name'] + "\"/> ";
+			inactive = "_inactive";	
+		}
+		
+		var form_display = "<form" + functions + ">"
+			+ form_input
+			+ "<div style='float: right'>" + upload + "</div>"
+			+ toggleItemClass
+			+ "</form></div>";
+			
+		return form_display;
+	}
+}
+
 //Display::functions
 function popup(url) 
 {

@@ -22,8 +22,8 @@ function sendLoginForm (go) {
 	
 	XObj.onreadystatechange = function () {
 		if(XObj.readyState == 4) {
-		    if(callback) {		
-			callback(XObj);
+		    if(callback) {
+				callback(XObj);
 			}
 		}
 	}

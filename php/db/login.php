@@ -22,7 +22,10 @@
 */
 
 $_ROOTdir = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF']);
-require_once($_ROOTdir . '/client.php');
+
+include($_ROOTdir . '/config.php'); //DATABASE: Configuration
+require_once($_ROOTdir . '/core.php'); //DATABASE: Core MySQL Connection, DateService
+require_once($_ROOTdir . '/client.php'); //DATABASE: Client extends Core, itemManager, uploadManager
 
 //DATABASE::Connection
 $client = new Client();

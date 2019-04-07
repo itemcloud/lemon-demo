@@ -21,8 +21,6 @@
 ** @license    http://www.gnu.org/licenses/gpl.html Open Source GPL 3.0 license
 */
 
-require_once($_ROOTdir . '/core.php');
-
 /* -------------------------------------------------------- **
 ** --------------------- CLIENT CLASS --------------------- **
 ** -------------------------------------------------------- */
@@ -123,11 +121,11 @@ class itemManager {
 			$this->deleteUserItem($_POST['delete']); 
 			$items = $this->getAllItems();
 		} elseif(isset($_GET['id'])){
-		  $items = $this->getItemById($_GET['id']);
+			$items = $this->getItemById($_GET['id']);
 		} elseif(isset($_GET['user'])) {
-		  $items = $this->getUserItems($_GET['user']);
+			$items = $this->getUserItems($_GET['user']);
 		} else {
-		  $items = $this->getAllItems();
+			$items = $this->getAllItems();
 		} return $items;
 	}
 
@@ -160,131 +158,6 @@ class itemManager {
 		
 		$quest = "DELETE FROM item WHERE item_id='$delete_id'";
 		$stream->query($quest);		
-	}
-	
-	function deleteUserItem ($delete_id) {
-		$stream = $this->stream;
-		
-		$quest = "DELETE FROM user_items WHERE item_id='$delete_id'";
-		$stream->query($quest);
-		
-		$this->deleteItem($_POST['delete']);		
-	}
-
-	function getItemClasses() {
-		$stream = $this->stream;
-		$class_quest = "SELECT item_class.*, item_nodes.*"
-					. " FROM item_class, item_nodes"
-					. " WHERE item_nodes.class_id=item_class.class_id";
-		
-		$class_loot = mysqli_query($stream, $class_quest);		
-		if($class_loot) {
-			while($class=$class_loot->fetch_assoc()) {
-				$class_id = $class['class_id'];				
-				if(!isset($class_loot_array[$class_id])) {
-					$class_loot_array[$class_id]['class_name'] = $class['class_name'];
-					$class_loot_array[$class_id]['class_id'] = $class_id;
-				    $class_loot_array[$class_id]['types'] = array();
-				    $class_loot_array[$class_id]['ext'] = array();				
-					$class_loot_array[$class_id]['nodes'] = array();
-				}
-				$class_loot_array[$class_id]['nodes'][] = $class;
-			}
-			
-			foreach($class_loot_array as $loot_array) {
-				$class_id = $loot_array['class_id'];				
-				$type_quest = "SELECT * FROM item_type"
-					. " WHERE class_id='" . $class_id . "'";
-					
-				$type_loot = mysqli_query($stream, $type_quest);				
-				if($type_loot) {
-					while($type=$type_loot->fetch_assoc()) {
-						array_push($class_loot_array[$class_id]['types'], $type['file_type']);
-						array_push($class_loot_array[$class_id]['ext'], $type['ext']);
-					}
-				}
-			}
-		}
-		return $class_loot_array;
-	}
-
-	function getItemTypes() {
-		$stream = $this->stream;
-		$quest = " SELECT item_class.*, item_nodes.*"
-		       . " FROM item_class, item_nodes"
-		       . " WHERE item_nodes.class_id=item_class.class_id";
-		
-		$type_loot = mysqli_query($stream, $quest);
-		$type_loot_array = NULL;
-		if($type_loot) {
-			while($loot=$type_loot->fetch_assoc()) {
-				$loot_str = $loot['class_name'];
-				$type_loot_array[$loot_str][] = $loot;
-			}
-		}			
-		return $type_loot_array;
-	}
-
-	function handleItemUpload($classes, $client) {
-		 if (isset($_POST['itc_class_id'])) {
-			$insertOk = "1";
-			$target_dir = "files/";			
-			$filesize = 10485760; //10MB
-			
-			$class = $_POST['itc_class_id'];			
-			$title = (isset($_POST['itc_title'])) ? $_POST['itc_title'] : "";
-			$info = (isset($_POST['itc_info'])) ? $_POST['itc_info'] : "";
-			$file = (isset($_POST['itc_file'])) ? $_POST['itc_file'] : "";
-
-			foreach($classes as $class_form) {
-				$class_id = $class_form['class_id'];
-				
-				//only handle the posted class
-				if($class == $class_id) {
-					foreach($class_form['nodes'] as $nodes){					
-						if(isset($_FILES["itc_file"]) && $nodes['node_name'] == 'file') {
-							if(count($class_form['ext'])) {
-								$file_extensions = $class_form['ext'];
-							}
-						} else if(!$_POST['itc_'.$nodes['node_name']] && $nodes['required'] != NULL){
-							//detect required nodes								
-							$message = "Sorry, your item could not be added.";	
-							$insertOk = "0"; return $message;
-						}							
-					}
-				}
-			}
-				
-			 if(isset($_FILES["itc_file"])) {
-				$tmp_file = new uploadManager(
-					$_FILES["itc_file"],
-					$target_dir,
-					$filesize,
-					$file_extensions);
-
-				$tmp_file->handleUploadRequest();
-				$tmp_file->uploadFile();
-					
-				$file = $tmp_file->target_file;	
-				if($tmp_file->uploadOk == "0") {
-					$insertOk = "0";
-				} $message = $tmp_file->errorStatus;
-
-				if($class != 4 && !$title) {
-				   $title = $_FILES["itc_file"]["name"];
-				}
-			}
-
-			if($insertOk) {
-				$id = $this->insertItem($class, $title, $info, $file);
-				if(isset($id)) {
-				  $this->insertUserItem($client->profile['user_id'], $id);
-				  return "Go to new item: " . "<a href=\"./?id=$id\">ITEM $id</a>";
-				}
-			} else {
-					return $message;
-			}
-		}
 	}
 
 	function getUserItems($user_serial) {
@@ -346,6 +219,132 @@ class itemManager {
 		}			
 		return $item_loot_array;
 	}		
+	
+	function deleteUserItem ($delete_id) {
+		$stream = $this->stream;
+		
+		$quest = "DELETE FROM user_items WHERE item_id='$delete_id'";
+		$stream->query($quest);
+		
+		$this->deleteItem($_POST['delete']);
+	}
+
+	function getItemClasses() {
+		$stream = $this->stream;
+		$class_quest = "SELECT item_class.*, item_nodes.*"
+					. " FROM item_class, item_nodes"
+					. " WHERE item_nodes.class_id=item_class.class_id";
+		
+		$class_loot = mysqli_query($stream, $class_quest);		
+		if($class_loot) {
+			while($class=$class_loot->fetch_assoc()) {
+				$class_id = $class['class_id'];				
+				if(!isset($class_loot_array[$class_id])) {
+					$class_loot_array[$class_id]['class_name'] = $class['class_name'];
+					$class_loot_array[$class_id]['class_id'] = $class_id;
+				    $class_loot_array[$class_id]['types'] = array();
+				    $class_loot_array[$class_id]['ext'] = array();				
+					$class_loot_array[$class_id]['nodes'] = array();
+				}
+				$class_loot_array[$class_id]['nodes'][] = $class;
+			}
+			
+			foreach($class_loot_array as $loot_array) {
+				$class_id = $loot_array['class_id'];				
+				$type_quest = "SELECT * FROM item_type"
+					. " WHERE class_id='" . $class_id . "'";
+					
+				$type_loot = mysqli_query($stream, $type_quest);				
+				if($type_loot) {
+					while($type=$type_loot->fetch_assoc()) {
+						array_push($class_loot_array[$class_id]['types'], $type['file_type']);
+						array_push($class_loot_array[$class_id]['ext'], $type['ext']);
+					}
+				}
+			}
+		}
+		
+		reset($class_loot_array);
+		return $class_loot_array;
+	}
+
+	function getItemTypes() {
+		$stream = $this->stream;
+		$quest = " SELECT item_class.*, item_nodes.*"
+		       . " FROM item_class, item_nodes"
+		       . " WHERE item_nodes.class_id=item_class.class_id";
+		
+		$type_loot = mysqli_query($stream, $quest);
+		$type_loot_array = NULL;
+		if($type_loot) {
+			while($loot=$type_loot->fetch_assoc()) {
+				$loot_str = $loot['class_name'];
+				$type_loot_array[$loot_str][] = $loot;
+			}
+		}			
+		return $type_loot_array;
+	}
+
+	function handleItemUpload($classes, $client) {
+		 if (isset($_POST['itc_class_id'])) {
+			$insertOk = "1";
+			$target_dir = "files/";			
+			$filesize = 10485760; //10MB
+			
+			$posted_class = $_POST['itc_class_id'];			
+			$title = (isset($_POST['itc_title'])) ? $_POST['itc_title'] : "";
+			$info = (isset($_POST['itc_info'])) ? $_POST['itc_info'] : "";
+			$file = (isset($_POST['itc_file'])) ? $_POST['itc_file'] : "";
+
+			$class_form = $classes[$posted_class];
+			$class_id = $class_form['class_id'];
+			
+			//only handle the posted class
+			if($posted_class == $class_id) {
+				foreach($class_form['nodes'] as $nodes){					
+					if(isset($_FILES["itc_file"]) && $nodes['node_name'] == 'file') {
+						if(count($class_form['ext'])) {
+							$file_extensions = $class_form['ext'];
+						}
+					} else if(!$_POST['itc_'.$nodes['node_name']] && $nodes['required'] != NULL){
+						//detect required nodes								
+						$message = "Sorry, your item could not be added.";	
+						$insertOk = "0"; return $message;
+					}
+				}
+			}
+				
+			 if(isset($_FILES["itc_file"])) {
+				$tmp_file = new uploadManager(
+					$_FILES["itc_file"],
+					$target_dir,
+					$filesize,
+					$file_extensions);
+
+				$tmp_file->handleUploadRequest();
+				$tmp_file->uploadFile();
+					
+				$file = $tmp_file->target_file;	
+				if($tmp_file->uploadOk == "0") {
+					$insertOk = "0";
+				} $message = $tmp_file->errorStatus;
+
+				if($class_id != 4 && !$title) {
+				   $title = $_FILES["itc_file"]["name"];
+				}
+			}
+
+			if($insertOk) {
+				$id = $this->insertItem($class_id, $title, $info, $file);
+				if(isset($id)) {
+				  $this->insertUserItem($client->profile['user_id'], $id);
+				    return "Go to new item: " . "<a href=\"./?id=$id\">ITEM $id</a>";
+				}
+			} else {
+					return $message;
+			}
+		}
+	}
 }
 
 /* -------------------------------------------------------- **

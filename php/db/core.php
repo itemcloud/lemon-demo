@@ -21,9 +21,6 @@
 ** @license    http://www.gnu.org/licenses/gpl.html Open Source GPL 3.0 license
 */
 
-//DATABASE: Configuration
-include('config.php');
-
 /* -------------------------------------------------------- **
 ** ---------------------- CORE CLASS ---------------------- **
 ** -------------------------------------------------------- */

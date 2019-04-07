@@ -21,24 +21,30 @@
 ** @license    http://www.gnu.org/licenses/gpl.html Open Source GPL 3.0 license
 */
 
-$_ROOTdir = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF']).'/php/db';
+$_ROOTdir = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF']);
 $_ROOTweb = "http://".$_SERVER['HTTP_HOST'].dirname($_SERVER['PHP_SELF'])."/";
 
-require_once($_ROOTdir . '/client.php');
-require_once($_ROOTdir . '/display.php');
+include($_ROOTdir .'/php/db' . '/config.php'); //DATABASE: Configuration
+require_once($_ROOTdir .'/php/db' . '/core.php'); //DATABASE: Core MySQL Connection, DateService
+require_once($_ROOTdir .'/php/db' . '/client.php'); //DATABASE: Client extends Core, itemManager, uploadManager
+require_once($_ROOTdir .'/php/db' . '/display.php'); //DISPLAY: PageManager extends Document, itemDisplay
 
+//DATABASE: MySQL Connection
 $client = new Client();
 $client->openConnection();
 
-$auth = $client->authorizeUser();
-$profile = $client->handleProfileRequest();
+$auth = $client->authorizeUser(); //AUTHORIZE USER ACCOUNT
+$profile = $client->handleProfileRequest(); //CHECK FOR PROFILE REQUEST IN URL
 $owner = ($profile['user_id'] == $client->profile['user_id']) ? true : false;
 
 $itemManager = $client->itemManager();
-$items = $itemManager->handleItemRequest();
-$client->closeConnection();	
+$types = $itemManager->getItemTypes();
+$classes = $itemManager->getItemClasses();
+$items = $itemManager->handleItemRequest(); //DATABASE: CHECK FOR ITEM REQUEST IN POST
+$client->closeConnection();
 
-$pageManager = new pageManager($items);
+//DISPLAY: HTML Document
+$pageManager = new pageManager($items, $classes, $_ROOTweb);
 $pageManager->displayDocumentHeader([
 	'title' => 'i t e m c l o u d - Items (' . count($items) . ')',
 	'scripts' => ['./js/welcome.js',
@@ -47,7 +53,7 @@ $pageManager->displayDocumentHeader([
 
 $pageManager->displayPageBanner($client);
 if (!$auth && !$items) { $pageManager->displayJoinform(); }
-else { $pageManager->displayPageItems($profile); }
+else { $pageManager->displayPageItems($profile, $owner); }
 
 $pageManager->displayDocumentFooter([
 	'copyright' => 'Copyright &copy;2019',
