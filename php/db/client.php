@@ -118,8 +118,11 @@ class itemManager {
 		if(isset($_GET['connect'])) {
 		  return;
 		} elseif(isset($_POST['delete'])) {
+			global $message;
+			$message = "The item has been deleted.";
+				
 			$this->deleteUserItem($_POST['delete']); 
-			$items = $this->getAllItems();
+			$items = $this->getUserItems($_GET['user']);
 		} elseif(isset($_GET['id'])){
 			$items = $this->getItemById($_GET['id']);
 		} elseif(isset($_GET['user'])) {
@@ -338,7 +341,7 @@ class itemManager {
 				$id = $this->insertItem($class_id, $title, $info, $file);
 				if(isset($id)) {
 				  $this->insertUserItem($client->profile['user_id'], $id);
-				    return "Go to new item: " . "<a href=\"./?id=$id\">ITEM $id</a>";
+				    return "Another " . "<a href=\"./?id=$id\">new item</a> has been added.";
 				}
 			} else {
 					return $message;
@@ -402,14 +405,14 @@ class uploadManager {
 	
 	function uploadFile () {
 		if($this->uploadOk) {
-		  if (move_uploaded_file($this->tmp_file["tmp_name"], $this->target_file)) {
+			if (move_uploaded_file($this->tmp_file["tmp_name"], $this->target_file)) {
+				$this->errorStatus = "Uploaded";
 				$this->uploadOk = 1;
-					$this->errorStatus = "Uploaded";
 			} else {
 				$this->errorStatus = "Sorry, something went wrong.";
-				$this->uploadOk = 0;						
+				$this->uploadOk = 0;
 			}
-		} else { $errorStatus = "Sorry, someting went wrong."; }
+		}
 	}
 }
 ?>
