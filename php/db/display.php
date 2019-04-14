@@ -100,17 +100,17 @@ class pageManager extends Document {
 	}
 	
 	function displayPageItems ($profile, $owner) {
+		global $message;
+		
 		if($profile) {
   		     $profileBanner = $this->profileBanner($profile);		 
 		     $this->displayWrapper('div', 'section', 'section_inner', $profileBanner);
 		}	
 		$itemsPage = $this->handlePageItems();
 		if($owner) {
-			global $classes;
-			global $message;
-  		    $omniBox = $this->displayOmniBox($classes, $message);
+  		    $omniBox = $this->displayOmniBox($this->classes, $message);
 			$itemsPage = $omniBox . $itemsPage;
-		}			
+		}		
 		$this->displayWrapper('div', 'section', 'section_inner splash-page', $itemsPage);	
 	}
 
@@ -122,26 +122,27 @@ class pageManager extends Document {
 	function handlePageItems() {
 		if(isset($_GET['connect'])) {
 				$page = "<div class=\"item-section\">"
-				. "<div class=\"alertbox-show\">You are currently signed in.</div>"
+					. "<div class=\"alertbox-show\">You are currently signed in.</div>"
 			    	. "</div>";
 		} else if(isset($_POST['delete'])) {
 				$page = "<div class=\"item-section\">"
-				. "<div class=\"alertbox-show\">The item has been deleted.</div>"
-			    	. "</div>";			
+		       	    . $this->displayItemBlog()
+					. "</div>";	
 		} else if(isset($_GET['id'])) {	      	     
-			$page = "<div class=\"item-section\">"
-		     	  . $this->displayItem()
-			  . "</div>";
+				$page = "<div class=\"item-section\">"
+					. $this->displayItem()
+					. "</div>";
 		  } 	
 		else if (isset($_GET['user'])) {
-		  $page = "<div class=\"item-section\">"
+				$page = "<div class=\"item-section\">"
 		       	    . $this->displayItemBlog()
-			    . "</div>";
+					. "</div>";
 		} else {
-		  $page = "<div class=\"item-section\" style=\"width: 820px\">"
-		  	. $this->displayItemBlog()
-		    . "</div>";
-		} return $page;	
+				$page = "<div class=\"item-section\" style=\"width: 1200px\">"
+					. $this->displayItemGrid(3)
+					//. $this->displayItemBlog()
+					. "</div>";
+		} return $page;
 	}
 
 	function displayWrapper ($tag, $class, $class_inner, $items) {
@@ -250,6 +251,7 @@ class pageManager extends Document {
 		global $client;	$user_id = $client->user_serial;		
 		$itemDisplay = new ItemDisplay($item);
 		$itemDisplay->user_id = $user_id;
+		
 		return $itemDisplay->htmlOutput($box_class, $this->ROOTweb, $info_limit);
 	}
 
@@ -268,6 +270,7 @@ class ItemDisplay {
 		$this->item_id = $item['item_id'];
 		$this->class_id = $item['class_id'];
 		$this->item_user_id = $item['user_id'];
+		
 		$this->title = $item['title'];
 		$this->info = $item['info'];
 		$this->file = $item['file'];
@@ -276,7 +279,7 @@ class ItemDisplay {
 	}
 	
 	function itemTitle () {
-		$title_html = "<div class=\"item-title\" onclick=\"window.location='./?id=" . $this->item_id . "';\">" . $this->title .  "</div><hr />";
+		$title_html = "<div class=\"item-title\" onclick=\"window.location='./?id=" . $this->item_id . "';\">" . $this->title . "</div><hr />";
 		return $title_html;
 	}
 	
@@ -297,20 +300,22 @@ class ItemDisplay {
 		if (!$info_limit) { $info_limit = strlen($this->info); }
 		
 		$item_html = "<div class='" . $box_class . "'>";
-		if($this->title) { $item_html .= $this->itemTitle(); }
-		if($this->info) { $item_html .= $this->itemInfo($info_limit); }
+		$item_html .= "<div class='item-nodes'>";
+		if($this->title) { $item_html .= $this->itemTitle();  }
 		if($this->file) { $item_html .= $this->handleFileDisplay(); }
+		if($this->info) { $item_html .= $this->itemInfo($info_limit); }
+		$item_html .= "</div>";
 		$item_html .= $this->itemMetaLinks($webroot);
 		$item_html .= $this->handleUserTools();
 		$item_html .= '<div class="clear"></div>';
 		$item_html .= '</div>';
 		return $item_html;
 	}
-
+	
 	function handleUserTools() {
 		$owner_id = ($this->user_id && $this->item_user_id == $this->user_id) ? $this->user_id : false;
 		if($owner_id) { 
-			return "<form id=\"itemForm" . $this->item_id . "\" action=\"index.php\" method=\"post\">"
+			return "<form id=\"itemForm" . $this->item_id . "\" action=\"index.php?user=" . $owner_id . "\" method=\"post\">"
 			. "<input type=\"hidden\" name=\"delete\" value=\"" . $this->item_id ."\"/>"
 			. "<div style=\"float: left;\" class=\"item-tools\" onclick=\"dom('itemForm" . $this->item_id . "').submit()\">delete</div>"
 			. "</form>"; 
@@ -341,20 +346,20 @@ class ItemDisplay {
 	}
 	
 	function linkOverride () {
-		$fn = $this->file;
-		$fn = substr($fn, strrpos($fn, '/')+1, strlen($fn));
-		$file_name_text = chopString($fn, 54);
+		$file_name_text = chopString($this->file, 54);
 
 		$file_display = '<div class="item-link"><center>'
 			  . '<div class="file_text">' . $file_name_text . '</div>'
-			  . '<a href="' . $this->file . '" title="' . $this->info . '" target="_blank">'
+			  . '<a href="' . $this->file . '" title="' . $this->file . '" target="_blank">'
 			  . '<div class="file_button">Go to Page</div></a>'
 			  . '</center></div><hr />';
 		return $file_display;
 	}
 	
 	function downloadOverride () {
-		$file_name_text = chopString($this->file, 54);
+		$fn = $this->file;
+		$fn = substr($fn, strrpos($fn, '/')+1, strlen($fn));
+		$file_name_text = chopString($fn, 54);
 		
 		$file_display = '<div class="item-link"><center>'
 				  . '<div class="file_text">' . $file_name_text . '</div>'
