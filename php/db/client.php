@@ -45,23 +45,37 @@ class Client extends Core {
 
 			///-- getUser() --///
 			$user = $this->getUser($_COOKIE[$uid]);
-			$this->profile = $user;		
-		} return $this->auth;		
+			$this->profile = $this->getUserProfile($_COOKIE[$uid]);
+		} return $this->auth;
 	}
 
 	function getUser ($user_id) {
 		$stream = $this->stream;
-		
 	  	if(!$stream){ return false; }
 	  
-		$input = "SELECT * FROM user WHERE user_id='$user_id'";
+		$input = "SELECT user.* FROM user"
+			. " WHERE user_id='$user_id'";
+			
 		$query = $stream->query($input);
 		return $query->fetch_assoc();
 	}
 
+	function getUserProfile ($user_id) {
+		$stream = $this->stream;		
+	  	if(!$stream){ return false; }	
+		
+		$input = "SELECT user_profile.*, user.date"
+			. " FROM user_profile, user"
+			. " WHERE user_profile.user_id='$user_id'"
+			. " AND user_profile.user_id=user.user_id";
+
+		$query = $stream->query($input);
+		return $query->fetch_assoc();
+	}
+	
 	function handleProfileRequest() {
 		if(!isset($_GET['user'])) { return false; }
-		return $this->getUser($_GET['user']);
+		return $this->getUserProfile($_GET['user']);
 	}
 	
 	function signIn ($e, $p) {
@@ -165,10 +179,11 @@ class itemManager {
 
 	function getUserItems($user_serial) {
 		$stream = $this->stream;
-		$quest = "SELECT item.*, user_items.user_id"
-		       . " FROM item, user_items"
+		$quest = "SELECT item.*, user_items.user_id, user_profile.user_img"
+		       . " FROM item, user_items, user_profile"
 		       . " WHERE user_items.user_id=$user_serial"
 		       . " AND item.item_id=user_items.item_id"
+			   . " AND user_profile.user_id=user_items.user_id"
 		       . " ORDER BY user_items.date DESC";
 		
 		$item_loot = mysqli_query($stream, $quest);
@@ -183,9 +198,10 @@ class itemManager {
 
 	function getAllItems() {
 		$stream = $this->stream;
-		$quest = "SELECT item.*, user_items.user_id"
-		       . " FROM item, user_items"
+		$quest = "SELECT item.*, user_items.user_id, user_profile.user_img"
+		       . " FROM item, user_items, user_profile"
 		       . " WHERE item.item_id=user_items.item_id"
+			   . " AND user_profile.user_id=user_items.user_id"
 		       . " ORDER BY user_items.date DESC";
 		
 		$item_loot = mysqli_query($stream, $quest);
@@ -208,10 +224,11 @@ class itemManager {
 
 	function getItemById($item_id) {
 		$stream = $this->stream;
-		$quest = "SELECT item.*, user_items.user_id"
-		       	 . " FROM item, user_items"
+		$quest = "SELECT item.*, user_items.user_id, user_profile.user_img"
+		     . " FROM item, user_items, user_profile"
 			 . " WHERE item.item_id='$item_id'"
-			 . " AND item.item_id=user_items.item_id";
+			 . " AND item.item_id=user_items.item_id"
+			 . " AND user_profile.user_id=user_items.user_id";
 		
 		$item_loot = mysqli_query($stream, $quest);
 		$item_loot_array = NULL;
