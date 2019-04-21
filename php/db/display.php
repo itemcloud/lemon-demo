@@ -152,7 +152,7 @@ class pageManager extends Document {
 
 	function displayItem() {
 		$box_class = "item-page";
-		if(!isset($this->items)){ return "No items found."; }		
+		if(!isset($this->items)){ return "No items found."; }	
 		$item_html = $this->handleItemType(reset($this->items), $box_class, null);
 		return $item_html;
 	}
@@ -206,14 +206,18 @@ class pageManager extends Document {
 		
 	}
 	
-	function profileBanner($user) {
-		$date = new DateService($user['date']);
+	function profileBanner($profile) {
+		$date = new DateService($profile['date']);
+		$user_banner_html = (isset($profile['user_img'])) ? " background-image: url(" . $this->ROOTweb . $profile['user_img'] . ")" : ""; 
 		 
 		$n = "\n";
-		$banner_html = "<a href=\"./?user=" . $user['user_id'] . "\">$n"
+		$banner_html = "<a href=\"./?user=" . $profile['user_id'] . "\">$n"
 			. "<div style=\"width: 100%; background-color: #111;\">$n"
-			. "<span class=\"item-user\" style=\"padding: 50px; margin: 20px;\"></span>$n"
-			. "<div style=\"position: relative; text-align: left; top: 60px;\">$n"
+			. "<span class=\"item-user\" style=\"padding: 50px; margin: 20px;"
+			. $user_banner_html
+			. "\"></span>$n"
+			. "<div style=\"position: relative; text-align: left; top: 20px;\">$n"
+			. "<div style=\"font-size: 2em\">" . $profile['user_name'] . "</div>"
 			. "<div class=\"bubble\" style=\"border-radius: 20px; background-color: #222; color: #666; display: inline-block; padding: 8px; font-size: 8px; text-align: center;\">MEMBER SINCE<br />" . $date->date_time . "</div></div>$n"
 			. "<div class=\"clear\"></div>$n"
 			. "</div>$n"
@@ -248,11 +252,12 @@ class pageManager extends Document {
 	}
 			
 	function handleItemType ($item, $box_class, $info_limit) {
-		global $client;	$user_id = $client->user_serial;		
-		$itemDisplay = new ItemDisplay($item);
+		global $client;	$user_id = $client->user_serial;
+		
+		$itemDisplay = new ItemDisplay($item, $this->ROOTweb);
 		$itemDisplay->user_id = $user_id;
 		
-		return $itemDisplay->htmlOutput($box_class, $this->ROOTweb, $info_limit);
+		return $itemDisplay->htmlOutput($box_class, $info_limit);
 	}
 
 	function displayJoinForm () {
@@ -266,10 +271,12 @@ class pageManager extends Document {
 ** -------------------------------------------------------- */
 
 class ItemDisplay {
-	function __construct ($item) {
+	function __construct ($item, $webroot) {
 		$this->item_id = $item['item_id'];
 		$this->class_id = $item['class_id'];
 		$this->item_user_id = $item['user_id'];
+		$this->webroot = $webroot;
+		$this->item_user_img = (isset($item['user_img'])) ? $item['user_img'] : "";
 		
 		$this->title = $item['title'];
 		$this->info = $item['info'];
@@ -279,35 +286,57 @@ class ItemDisplay {
 	}
 	
 	function itemTitle () {
-		$title_html = "<div class=\"item-title\" onclick=\"window.location='./?id=" . $this->item_id . "';\">" . $this->title . "</div><hr />";
+		$title_html = "<div class=\"item-title\" onclick=\"window.location='./?id=" . $this->item_id . "';\">" . $this->title . "</div>";
 		return $title_html;
 	}
 	
+	function itemFile() {
+		
+		$file_name_text = chopString($this->file, 34);
+
+		$file_display = '<div class="item-link"><center>'
+			  . '<div class="file_text">' . $file_name_text . '</div>'
+			  . '<a href="' . $this->file . '" title="' . $this->file . '" target="_blank">'
+			  . '<div class="file_button">Go to File</div></a>'
+			  . '</center></div>';
+		return $file_display;
+	}
+	
 	function itemInfo ($limit) {
-		$info_html = '<div class="item-info">' . nl2br(chopString($this->info, $limit)) . '</div><hr />';
+		$info_html = '<div class="item-info">' . nl2br(chopString($this->info, $limit)) . '</div>';
 		return $info_html;
 	}
 	
 	function itemMetaLinks($webroot) {		
-		$item_user_html = "<div onclick=\"window.location='./?user=" . $this->item_user_id . "';\"><span class=\"item-user\"></span></div>";
+		$user_img = ($this->item_user_img) ? " style=\"background-image: url(" . $this->webroot . $this->item_user_img . ")\"" : "";
+	
+		$item_user_html = "<div onclick=\"window.location='./?user=" . $this->item_user_id . "';\">";
+		$item_user_html .= "<span class=\"item-user\"$user_img></span>";
+		$item_user_html .= "</div>";
+		
 		$item_link_html = '<div class="item-link"><a href="./?id=' . $this->item_id . '">' . $webroot . '?item='  . $this->item_id . '</a></div>';
 		$date_html = '<div class="item-date">' . $this->dateService->date_time . '</div>';
 		
 		return $item_user_html . "<div style='float: left;'>" . $item_link_html . $date_html . "</div>";
 	}
 
-	function htmlOutput ($box_class, $webroot, $info_limit) {
+	function htmlOutput ($box_class, $info_limit) {
+		global $CONFIG;
 		if (!$info_limit) { $info_limit = strlen($this->info); }
 		
 		$item_html = "<div class='" . $box_class . "'>";
 		$item_html .= "<div class='item-nodes'>";
 		if($this->title) { $item_html .= $this->itemTitle();  }
-		if($this->file) { $item_html .= $this->handleFileDisplay(); }
+		if($this->file) { $item_html .= ($CONFIG['file_display'] == 'PLUGIN') ? $this->handleFileDisplay() : $this->itemFile(); }
 		if($this->info) { $item_html .= $this->itemInfo($info_limit); }
 		$item_html .= "</div>";
-		$item_html .= $this->itemMetaLinks($webroot);
+		
+		$item_html .= "<div class='item-meta'>";
+		$item_html .= $this->itemMetaLinks($this->webroot);
 		$item_html .= $this->handleUserTools();
+		
 		$item_html .= '<div class="clear"></div>';
+		$item_html .= "</div>";
 		$item_html .= '</div>';
 		return $item_html;
 	}
@@ -340,7 +369,7 @@ class ItemDisplay {
 				$file_display = $this->videoOverride();
 				break;
 			default:
-				$file_display = "";
+				$file_display = $this->itemFile();
 				break;
 		}	return $file_display;
 	}
@@ -352,7 +381,7 @@ class ItemDisplay {
 			  . '<div class="file_text">' . $file_name_text . '</div>'
 			  . '<a href="' . $this->file . '" title="' . $this->file . '" target="_blank">'
 			  . '<div class="file_button">Go to Page</div></a>'
-			  . '</center></div><hr />';
+			  . '</center></div>';
 		return $file_display;
 	}
 	
@@ -365,13 +394,13 @@ class ItemDisplay {
 				  . '<div class="file_text">' . $file_name_text . '</div>'
 				  . '<a href="' . $this->file . '">'
 				  . '<div class="file_button">Download File</div></a>'
-				  . '</center></div><hr />';
+				  . '</center></div>';
 		return $file_display;
 	}
 	
 	function photoOverride () {
 		$onlick = "onclick=\"window.location='./?id=" . $this->item_id . "';\"";
-		$file_display = "<div $onlick class=\"item-link\"><div class=\"image-cell\"><img src=\"" . $this->file . "\" width=\"100%\"></div></div><hr />";
+		$file_display = "<div $onlick class=\"item-link\"><div class=\"image-cell\"><img src=\"" . $this->file . "\" width=\"100%\"></div></div>";
 		return $file_display;
 	}
 	
