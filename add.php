@@ -31,18 +31,20 @@ require_once($_ROOTdir .'/php/db' . '/display.php'); //DISPLAY: PageManager exte
 
 //DATABASE: MySQL Connection
 $client = new Client();
+$client->enableAddOns();
 $client->openConnection();
 
-$auth = $client->authorizeUser(); //AUTHORIZE USER ACCOUNT
-
+//AUTHORIZE USER ACCOUNT
+$auth = $client->authorizeUser();
 $itemManager = $client->itemManager();
-$classes = $itemManager->classes;
-$types = $itemManager->types;
+$itemManager->enableAddOns();
 
-$message = (isset($_POST['itc_class_id'])) ? $itemManager->handleItemUpload($client) : false;
+$itemManager->meta['message'] = (isset($_POST['itc_class_id'])) ? $itemManager->handleItemUpload($client) : false;
 $client->closeConnection();
 	      
 $pageManager = new pageManager($itemManager, $_ROOTweb);
+$itemManager->enableAddOns();
+
 $pageManager->displayDocumentHeader([
 	'title' => 'i t e m c l o u d',
 	'scripts' => ['./js/welcome.js',
@@ -51,7 +53,7 @@ $pageManager->displayDocumentHeader([
 
 $pageManager->displayPageBanner($client);
 if (!$auth && !$items){ $pageManager->displayJoinForm(); }
-else { $pageManager->displayPageOmniBox($classes, $message); }
+else { $pageManager->displayPageOmniBox(); }
 
 $pageManager->displayDocumentFooter([
 	'copyright' => 'Copyright &copy;2019',
