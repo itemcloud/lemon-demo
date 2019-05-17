@@ -52,7 +52,6 @@ class Client extends Core {
 
 			///-- getUser() --///
 			$user = $this->getUser($_COOKIE[$uid]);
-			$this->profile = $this->getUserProfile($_COOKIE[$uid]);
 		} return $this->auth;
 	}
 
@@ -67,34 +66,6 @@ class Client extends Core {
 		return $query->fetch_assoc();
 	}
 
-	function getUserProfile ($user_id) {
-		$stream = $this->stream;		
-	  	if(!$stream){ return false; }	
-		
-		$input = "SELECT user_profile.*, user.date"
-			. " FROM user_profile, user"
-			. " WHERE user_profile.user_id='$user_id'"
-			. " AND user_profile.user_id=user.user_id";
-
-		$query = $stream->query($input);
-		$profile_loot_array = $query->fetch_assoc();
-		
-		if($this->addOns) {
-			foreach($this->addOns as $addOn) {
-				if(isset($addOn['profile-request'])) { 
-					$addon_request = new $addOn['profile-request']($this->stream, $profile_loot_array, $user_id);
-					$profile_loot_array = $addon_request->getAddOnLoot();
-				}
-			}
-		}
-		return $profile_loot_array;
-	}
-	
-	function handleProfileRequest() {
-		if(!isset($_GET['user'])) { return false; }
-		return $this->getUserProfile($_GET['user']);
-	}
-	
 	function signIn ($e, $p) {
 		$stream = $this->stream;
 
