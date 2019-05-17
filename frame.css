@@ -153,13 +153,13 @@ input.form_button:hover {
 input.item_tools {
 	display: inline-block;
 	border: none;
-	background-color: #DCDCDC;
+	background-color: #CCC;
 	border-radius: 14px;
     border: none !important;
     border: 0;
 	padding: 6px 10px;
 	margin-left: 4px;
-	color: #fff;
+	color: #999;
 	font-size: 14px;
 	font-style: none;
 	font-weight: bold;
@@ -169,14 +169,14 @@ input.item_tools {
 }
 
 input.item_tools_inactive {
-	cursor: pointer;
+    cursor: pointer;
     display: inline-block;
     margin: 8px;
     padding: 8px;
     background-color: #FFF;
     border-width: 0px;
-    color: #CCC;
 }
+
 input.item_tools_inactive:hover {
 	text-decoration: underline;
 }
