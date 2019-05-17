@@ -134,8 +134,8 @@ class pageManager extends Document {
 		$this->displayWrapper('div', 'section', 'section_inner splash-page', $itemsPage);	
 	}
 
-	function displayPageOmniBox ($classes, $message) {
-		$omniBox = $this->displayOmniBox($classes, $message);
+	function displayPageOmniBox () {
+		$omniBox = $this->displayOmniBox($this->classes);
 		$this->displayWrapper('div', 'section', 'section_inner splash-page', $omniBox);
 	}
 		
@@ -261,12 +261,12 @@ class pageManager extends Document {
 		$class_js_array = json_encode($classes);
 		$class_id = (isset($_POST['itc_class_id'])) ? $_POST['itc_class_id'] : key($classes);
 		
-		$javascript_omni_box = "<script>var OmniController = new OmniBox(" . $class_js_array . ", 'itemOmniBox');\n OmniController.toggle('" . $class_id . "');\n</script>";		
-	
-		if (isset($this->meta['message'])) { $createForm = "<center><div class=\"alertbox-show\">$message</div></center>"; }
-		$createForm = "<div class=\"item-section\"><div class=\"item-page\" id=\"itemOmniBox\">" . "</div></div>";
+		$javascript_omni_box = "<script>var OmniController = new OmniBox(" . $class_js_array . ", 'itemOmniBox');\n OmniController.toggle('" . $class_id . "');\n</script>";
+		$message = (isset($this->meta['message'])) ? "<center><div class=\"alertbox-show\">" . $this->meta['message'] . "</div></center>" : "";
+		
+		$createForm  = "<div class=\"item-section\"><div class=\"item-page\" id=\"itemOmniBox\">" . "</div></div>";
 		$createForm .= $javascript_omni_box;
-		return $createForm;
+		return $message . $createForm . $javascript_omni_box;
 	}	
 	
 	function handleXML() {		
