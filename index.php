@@ -29,22 +29,29 @@ require_once($_ROOTdir .'/php/db' . '/core.php'); //DATABASE: Core MySQL Connect
 require_once($_ROOTdir .'/php/db' . '/client.php'); //DATABASE: Client extends Core, itemManager, uploadManager
 require_once($_ROOTdir .'/php/db' . '/display.php'); //DISPLAY: PageManager extends Document, itemDisplay
 
+//ADDONS
+foreach (glob($_ROOTdir . "/php/addons/*.php") as $filename){
+   require_once($filename);
+}
+
 //DATABASE: MySQL Connection
 $client = new Client();
+$client->enableAddOns();
 $client->openConnection();
 
-$auth = $client->authorizeUser(); //AUTHORIZE USER ACCOUNT
-$profile = $client->handleProfileRequest(); //CHECK FOR PROFILE REQUEST IN URL
-$owner = ($profile['user_id'] == $client->profile['user_id'] && $auth) ? true : false;
-
+//AUTHORIZE USER ACCOUNT
+$auth = $client->authorizeUser();
 $itemManager = $client->itemManager();
-$types = $itemManager->getItemTypes();
-$classes = $itemManager->getItemClasses();
-$items = $itemManager->handleItemRequest(); //DATABASE: CHECK FOR ITEM REQUEST IN POST
+$itemManager->enableAddOns();
+
+//DATABASE: CHECK FOR ITEM REQUEST IN POST
+$items = $itemManager->handleItemRequest();
 $client->closeConnection();
 
 //DISPLAY: HTML Document
-$pageManager = new pageManager($items, $classes, $_ROOTweb);
+$pageManager = new pageManager($itemManager, $_ROOTweb);
+$pageManager->enableAddOns();
+
 $pageManager->displayDocumentHeader([
 	'title' => 'i t e m c l o u d - Items (' . count($items) . ')',
 	'scripts' => ['./js/welcome.js',
@@ -53,7 +60,7 @@ $pageManager->displayDocumentHeader([
 
 $pageManager->displayPageBanner($client);
 if (!$auth && !$items) { $pageManager->displayJoinform(); }
-else { $pageManager->displayPageItems($profile, $owner); }
+else { $pageManager->displayPageItems(); }
 
 $pageManager->displayDocumentFooter([
 	'copyright' => 'Copyright &copy;2019',
