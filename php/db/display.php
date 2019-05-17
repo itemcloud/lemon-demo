@@ -34,7 +34,7 @@ class Document {
 		}
 
 		$header = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
-		
+
 			 . '<html>'
 		 	 . '<head>'
 		 	 . '<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />'
@@ -93,24 +93,44 @@ class Document {
 
 class pageManager extends Document {
 
-	function __construct($itemXML, $classObject, $ROOTweb) {
-		$this->items = $itemXML;
-		$this->classes = $classObject;
+	function __construct($itemData, $ROOTweb) {
+		$this->meta = $itemData->meta;
+		$this->items = $itemData->items;
+		$this->classes = $itemData->classes;
 		$this->ROOTweb = $ROOTweb;
+		$this->addOns = NULL;
+		$this->profileOutput = "";
 	}
 	
-	function displayPageItems ($profile, $owner) {
-		global $message;
-		
-		if($profile) {
-  		     $profileBanner = $this->profileBanner($profile);		 
-		     $this->displayWrapper('div', 'section', 'section_inner', $profileBanner);
+	function enableAddOns () {
+		global $addOns;
+		if(isset($addOns)) {
+			$this->addOns = $addOns;
+		}
+	}
+	
+	function displayPageItems () {
+		if(isset($this->meta['profile'])) {
+			$profile = $this->meta['profile'];
+  		    $this->profileOutput = $this->profileBanner($profile);
+			
+			if($this->addOns) {
+				foreach($this->addOns as $addOn) {
+					if(isset($addOn['profile-display'])){ 
+						$addonClass = new $addOn['profile-display']($profile);
+						$addonClass->updateOutputHTML($this);
+					}
+				}
+			}
+			$profileBanner = $this->profileOutput;
+		    $this->displayWrapper('div', 'section', 'section_inner', $profileBanner);
 		}	
+		
 		$itemsPage = $this->handlePageItems();
-		if($owner) {
-  		    $omniBox = $this->displayOmniBox($this->classes, $message);
+		if(isset($this->meta['owner'])) {
+  		    $omniBox = $this->displayOmniBox();
 			$itemsPage = $omniBox . $itemsPage;
-		}		
+		}
 		$this->displayWrapper('div', 'section', 'section_inner splash-page', $itemsPage);	
 	}
 
@@ -120,6 +140,17 @@ class pageManager extends Document {
 	}
 		
 	function handlePageItems() {
+
+		if($this->addOns) {
+			foreach($this->addOns as $addOn) {
+				if(isset($addOn['page-display'])) { 
+					$addonClass = new $addOn['page-display']();
+					$returnPage = $addonClass->addonPageItems($this);
+					if($returnPage) { return $returnPage; }
+				}
+			}
+		}
+		
 		if(isset($_GET['connect'])) {
 				$page = "<div class=\"item-section\">"
 					. "<div class=\"alertbox-show\">You are currently signed in.</div>"
@@ -132,15 +163,14 @@ class pageManager extends Document {
 				$page = "<div class=\"item-section\">"
 					. $this->displayItem()
 					. "</div>";
-		  } 	
-		else if (isset($_GET['user'])) {
+		} else if (isset($_GET['user'])) {
 				$page = "<div class=\"item-section\">"
 		       	    . $this->displayItemBlog()
 					. "</div>";
 		} else {
-				$page = "<div class=\"item-section\" style=\"width: 1200px\">"
-					. $this->displayItemGrid(3)
-					//. $this->displayItemBlog()
+				$page = "<div class=\"item-section\">"
+					//. $this->displayItemGrid(3)
+					. $this->displayItemBlog()
 					. "</div>";
 		} return $page;
 	}
@@ -217,7 +247,7 @@ class pageManager extends Document {
 			. $user_banner_html
 			. "\"></span>$n"
 			. "<div style=\"position: relative; text-align: left; top: 20px;\">$n"
-			. "<div style=\"font-size: 2em\">" . $profile['user_name'] . "</div>"
+			. "<div style=\"font-size: 2em\">" . $profile['user_name'] . "</div>" 
 			. "<div class=\"bubble\" style=\"border-radius: 20px; background-color: #222; color: #666; display: inline-block; padding: 8px; font-size: 8px; text-align: center;\">MEMBER SINCE<br />" . $date->date_time . "</div></div>$n"
 			. "<div class=\"clear\"></div>$n"
 			. "</div>$n"
@@ -226,14 +256,15 @@ class pageManager extends Document {
 		return $banner_html;
 	}
 
-	function displayOmniBox($classes, $message) {
+	function displayOmniBox() {
+		$classes = $this->classes;
 		$class_js_array = json_encode($classes);
 		$class_id = (isset($_POST['itc_class_id'])) ? $_POST['itc_class_id'] : key($classes);
 		
 		$javascript_omni_box = "<script>var OmniController = new OmniBox(" . $class_js_array . ", 'itemOmniBox');\n OmniController.toggle('" . $class_id . "');\n</script>";		
 	
-		$createForm = ($message) ? "<center><div class=\"alertbox-show\">$message</div></center>" : "";
-		$createForm .= "<div class=\"item-section\"><div class=\"item-page\" id=\"itemOmniBox\">" . "</div></div>";
+		if (isset($this->meta['message'])) { $createForm = "<center><div class=\"alertbox-show\">$message</div></center>"; }
+		$createForm = "<div class=\"item-section\"><div class=\"item-page\" id=\"itemOmniBox\">" . "</div></div>";
 		$createForm .= $javascript_omni_box;
 		return $createForm;
 	}	
@@ -252,12 +283,46 @@ class pageManager extends Document {
 	}
 			
 	function handleItemType ($item, $box_class, $info_limit) {
-		global $client;	$user_id = $client->user_serial;
+		global $client;
+		$user_id = $client->user_serial;
+			
+		switch ($item['class_id']) {
+			case 2: // item_type: link
+				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id);
+				$itemDisplay->fileOutput = $itemDisplay->linkOverride();
+				break;
+			case 3: // item_type: download
+				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id);
+				$itemDisplay->fileOutput = $itemDisplay->downloadOverride();
+				break;
+			case 4: // item_type: photo
+				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id);
+				$itemDisplay->fileOutput = $itemDisplay->photoOverride();
+				break;
+			case 5: // item_type: audio
+				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id);
+				$itemDisplay->fileOutput = $itemDisplay->audioOverride();
+				break;
+			case 6: // item_type: video
+				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id);
+				$itemDisplay->fileOutput = $itemDisplay->videoOverride();
+				break;
+			default:
+				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id);
+				break;
+		}
 		
-		$itemDisplay = new ItemDisplay($item, $this->ROOTweb);
-		$itemDisplay->user_id = $user_id;
+		if($this->addOns) {
+			foreach($this->addOns as $addOn) {
+				if(isset($addOn['item-display'])) {
+					$addonClass = new $addOn['item-display']();
+					$itemDisplay->updateAddOns($addonClass);
+				}
+			}
+		}
 		
-		return $itemDisplay->htmlOutput($box_class, $info_limit);
+		$itemDisplay->output = $itemDisplay->displayHTML();
+		return $itemDisplay->output;
 	}
 
 	function displayJoinForm () {
@@ -265,35 +330,56 @@ class pageManager extends Document {
 		$this->displayWrapper('div', 'section', 'section_inner splash-page', $joinForm);
 	}
 }
-
+	
 /* -------------------------------------------------------- **
 ** -------------------- ITEM DISPLAY ---------------------- **
 ** -------------------------------------------------------- */
 
 class ItemDisplay {
-	function __construct ($item, $webroot) {
+	function __construct ($item, $webroot, $box_class, $user_id) {		
+		$this->item = $item;
+		
 		$this->item_id = $item['item_id'];
 		$this->class_id = $item['class_id'];
 		$this->item_user_id = $item['user_id'];
-		$this->webroot = $webroot;
-		$this->item_user_img = (isset($item['user_img'])) ? $item['user_img'] : "";
+		$this->box_class = $box_class;
+		
+		$this->user_id = $user_id;
+		$this->owner = ($this->user_id && $this->item_user_id == $this->user_id) ? $this->user_id : false;
+		
+		$this->webroot = $webroot;		
+		$this->item_user_img = (isset($item['profile']['user_img'])) ? $item['profile']['user_img'] : "";
+		$this->dateService = new DateService($item['date']);
 		
 		$this->title = $item['title'];
 		$this->info = $item['info'];
 		$this->file = $item['file'];
+
+		$this->titleOutput = $this->titleDisplayHTML();
+		$this->infoOutput = $this->infoDisplayHTML();
+		$this->fileOutput = $this->fileDisplayHTML();
+		$this->metaOutput = $this->itemMetaLinks();
+		$this->userTools = $this->itemUserTools();
 		
-		$this->dateService = new DateService($item['date']);
+		$this->output = $this->displayHTML();
 	}
 	
-	function itemTitle () {
+	function updateAddOns ($addons) {
+		$addons->updateOutputHTML($this);
+	}
+	
+	function titleDisplayHTML () {
 		$title_html = "<div class=\"item-title\" onclick=\"window.location='./?id=" . $this->item_id . "';\">" . $this->title . "</div>";
 		return $title_html;
 	}
 	
-	function itemFile() {
-		
+	function infoDisplayHTML () {
+		$info_html = '<div class="item-info">' . nl2br(chopString($this->info, 240)) . '</div>';
+		return $info_html;
+	}
+	
+	function fileDisplayHTML () {
 		$file_name_text = chopString($this->file, 34);
-
 		$file_display = '<div class="item-link"><center>'
 			  . '<div class="file_text">' . $file_name_text . '</div>'
 			  . '<a href="' . $this->file . '" title="' . $this->file . '" target="_blank">'
@@ -302,76 +388,36 @@ class ItemDisplay {
 		return $file_display;
 	}
 	
-	function itemInfo ($limit) {
-		$info_html = '<div class="item-info">' . nl2br(chopString($this->info, $limit)) . '</div>';
-		return $info_html;
-	}
-	
-	function itemMetaLinks($webroot) {		
-		$user_img = ($this->item_user_img) ? " style=\"background-image: url(" . $this->webroot . $this->item_user_img . ")\"" : "";
-	
-		$item_user_html = "<div onclick=\"window.location='./?user=" . $this->item_user_id . "';\">";
-		$item_user_html .= "<span class=\"item-user\"$user_img></span>";
-		$item_user_html .= "</div>";
-		
-		$item_link_html = '<div class="item-link"><a href="./?id=' . $this->item_id . '">' . $webroot . '?item='  . $this->item_id . '</a></div>';
+	function itemMetaLinks() {
+		$item_link_html = '<div class="item-link"><a href="./?id=' . $this->item_id . '">' . $this->webroot . '?item='  . $this->item_id . '</a></div>';
 		$date_html = '<div class="item-date">' . $this->dateService->date_time . '</div>';
 		
-		return $item_user_html . "<div style='float: left;'>" . $item_link_html . $date_html . "</div>";
+		return "<div style='float: left;'>" . $item_link_html . $date_html . "</div>";
 	}
 
-	function htmlOutput ($box_class, $info_limit) {
-		global $CONFIG;
-		if (!$info_limit) { $info_limit = strlen($this->info); }
-		
-		$item_html = "<div class='" . $box_class . "'>";
+	function itemUserTools() {
+		if($this->owner) { 
+			return "<form id=\"itemForm" . $this->item_id . "\" action=\"index.php?user=" . $this->item_user_id . "\" method=\"post\">"
+			. "<input type=\"hidden\" name=\"delete\" value=\"" . $this->item_id ."\"/>"
+			. "<div style=\"float: left;\" class=\"item-tools_grey\" onclick=\"dom('itemForm" . $this->item_id . "').submit()\">delete</div>"
+			. "</form>"; 
+		}
+	}	
+	
+	function displayHTML() {
+		$item_html = "<div onmouseover=\"dom('userTools" . $this->item_id . "').style.display='block';\" onmouseout=\"dom('userTools" . $this->item_id . "').style.display='none';\" class=\"" . $this->box_class . "\">";
+		$item_html .= "<div style='position: relative;'><div id='userTools" . $this->item_id . "' style='position: absolute; right: 4px; top: 4px; display: none'>" . $this->userTools . "</div></div>";
 		$item_html .= "<div class='item-nodes'>";
-		if($this->title) { $item_html .= $this->itemTitle();  }
-		if($this->file) { $item_html .= ($CONFIG['file_display'] == 'PLUGIN') ? $this->handleFileDisplay() : $this->itemFile(); }
-		if($this->info) { $item_html .= $this->itemInfo($info_limit); }
+		if($this->title) { $item_html .= $this->titleOutput; }
+		if($this->file) { $item_html .= $this->fileOutput; }
+		if($this->info) { $item_html .= $this->infoOutput; }
 		$item_html .= "</div>";
-		
 		$item_html .= "<div class='item-meta'>";
-		$item_html .= $this->itemMetaLinks($this->webroot);
-		$item_html .= $this->handleUserTools();
-		
+		$item_html .= $this->metaOutput;
 		$item_html .= '<div class="clear"></div>';
 		$item_html .= "</div>";
 		$item_html .= '</div>';
 		return $item_html;
-	}
-	
-	function handleUserTools() {
-		$owner_id = ($this->user_id && $this->item_user_id == $this->user_id) ? $this->user_id : false;
-		if($owner_id) { 
-			return "<form id=\"itemForm" . $this->item_id . "\" action=\"index.php?user=" . $owner_id . "\" method=\"post\">"
-			. "<input type=\"hidden\" name=\"delete\" value=\"" . $this->item_id ."\"/>"
-			. "<div style=\"float: left;\" class=\"item-tools\" onclick=\"dom('itemForm" . $this->item_id . "').submit()\">delete</div>"
-			. "</form>"; 
-		}
-	}		
-	
-	function handleFileDisplay() {
-		switch ($this->class_id) {
-			case 2: // item_type: link
-				$file_display = $this->linkOverride();
-				break;
-			case 3: // item_type: download
-				$file_display = $this->downloadOverride();
-				break;
-			case 4: // item_type: photo
-				$file_display = $this->photoOverride();
-				break;
-			case 5: // item_type: audio
-				$file_display = $this->audioOverride();
-				break;
-			case 6: // item_type: video
-				$file_display = $this->videoOverride();
-				break;
-			default:
-				$file_display = $this->itemFile();
-				break;
-		}	return $file_display;
 	}
 	
 	function linkOverride () {
