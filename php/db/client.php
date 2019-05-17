@@ -40,10 +40,8 @@ class Client extends Core {
 			
 		///-- serial --///
 		$this->user_serial = false;
-		$this->profile = false;
 
 		$uid = $this->usercookie;
-		
 		if (isset($_COOKIE[$uid])) {
 			$this->auth = true;
 			
@@ -61,9 +59,18 @@ class Client extends Core {
 	  
 		$input = "SELECT user.user_id FROM user"
 			. " WHERE user_id='$user_id'";
-			
+					
 		$query = $stream->query($input);
-		return $query->fetch_assoc();
+		$user = $query->fetch_assoc();
+		
+		if($this->addOns) {
+			foreach($this->addOns as $addOn) {
+				if(isset($addOn['user-request'])) { 
+					$addon_request = new $addOn['user-request']($this->stream, $user);
+					$user = $addon_request->getAddOnLoot($this);
+				}
+			}
+		} return $user;
 	}
 
 	function signIn ($e, $p) {
@@ -134,17 +141,6 @@ class itemManager {
 	}
 	
 	function handleItemRequest() {
-
-		if($this->addOns) {
-			foreach($this->addOns as $addOn) {
-				if(isset($addOn['post-handler'])) {
-					//POST ADDONS	
-					$addonClass = new $addOn['post-handler']($this->stream);
-					$returnItems = $addonClass->handleAddOnPost($this);
-					if($returnItems) { $this->items = $returnItems; return $this->items; }
-				}
-			}
-		}
 		
 		if(isset($_GET['connect'])) {
 		    return;
@@ -154,6 +150,17 @@ class itemManager {
 			$this->deleteUserItem($_POST['delete']);
 			$this->items = $this->getUserItems($_GET['user']);
 			return $this->items;
+		}		
+		
+		if($this->addOns) {
+			foreach($this->addOns as $addOn) {
+				if(isset($addOn['post-handler'])) {
+					//POST ADDONS	
+					$addonClass = new $addOn['post-handler']($this->stream);
+					$returnItems = $addonClass->handleAddOnPost($this);
+					if($returnItems) { $this->items = $returnItems; return $this->items; }
+				}
+			}
 		}
 		
 		if(isset($_GET['id'])){
@@ -386,7 +393,6 @@ class itemManager {
 
 				$tmp_file->handleUploadRequest();
 				$tmp_file->uploadFile();
-					
 				$file = $tmp_file->target_file;	
 				if($tmp_file->uploadOk == "0") {
 					$insertOk = "0";
@@ -399,8 +405,8 @@ class itemManager {
 
 			if($insertOk) {
 				$id = $this->insertItem($class_id, $title, $info, $file);
-				if(isset($id)) {
-				  $this->insertUserItem($client->profile['user_id'], $id);
+				if(isset($id) && $client->user_serial) {
+				  $this->insertUserItem($client->user_serial, $id);
 				    return "Another " . "<a href=\"./?id=$id\">new item</a> has been added.";
 				}
 			} else {
@@ -420,7 +426,7 @@ class uploadManager {
 		
 		$this->tmp_file = $FILE;
 		$this->target_file = $target_dir . mt_rand(99, 999) . "_" . basename($FILE["name"]);
-		$this->filesize = $filesize;
+		$this->filesize_limit = $filesize;
 		$this->filetypes = $filetypes;
 		$this->uploadOk = 1;
 		$this->imageFileType = strtolower(pathinfo(basename($FILE["name"]),PATHINFO_EXTENSION));
@@ -435,7 +441,7 @@ class uploadManager {
 			$this->uploadOk = 0;
 		}
 		// Check file size
-		if ($this->uploadOk && $this->tmp_file["size"] > $this->filesize) {
+		if ($this->uploadOk && $this->tmp_file["size"] > $this->filesize_limit) {
 			$this->errorStatus = "Sorry, your file is too large.";
 			$this->uploadOk = 0;
 		}
