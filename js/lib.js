@@ -24,7 +24,7 @@ class OmniBox {
 				var functions = " action=\"add.php\" method=\"post\" enctype=\"multipart/form-data\"";
 
 				var types = class_form['types'];
-				form_input += "<input type=\"file\" class=\"form_button\" name=\"itc_" + node['node_name'] + "\" id=\"itc_" + node['node_name'] + "\" accept=\"";
+				form_input += "<input type=\"file\" class=\"item-tools\" name=\"itc_" + node['node_name'] + "\" id=\"itc_" + node['node_name'] + "\" accept=\"";
 
 				//accepted filetypes
 				form_input += types.join();
@@ -51,7 +51,7 @@ class OmniBox {
 				}
 			}
 			
-			var upload = "<input class=\"form_button\" type=\"submit\" name=\"submit\" value=\"NEXT >\"/><br />";			
+			var upload = "<input class=\"item-tools\" type=\"submit\" name=\"submit\" value=\"&#9989; SAVE\"/><br />";			
 		}
 
 		var inactive = "_inactive";

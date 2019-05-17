@@ -36,6 +36,7 @@ Class Core {
 	  $this->password = $CONFIG['password'];
 	  $this->db = $CONFIG['db'];
 	  $this->usercookie = 'ICC:UID';
+	  $this->addOns = NULL;
 	}
 
 	function MyDB_Connect () {

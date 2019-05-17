@@ -126,7 +126,7 @@ textarea.form {
     max-height: 340px;
 }
 input.form, textarea.form {
-	width: 300px;
+	width: 234px;
 	height: 34px;
 	font-size: 22px;
 	padding: 4px;
@@ -155,6 +155,8 @@ input.item_tools {
 	border: none;
 	background-color: #DCDCDC;
 	border-radius: 14px;
+    border: none !important;
+    border: 0;
 	padding: 6px 10px;
 	margin-left: 4px;
 	color: #fff;
@@ -184,6 +186,23 @@ input.item_tools_inactive:hover {
 	min-height: 540px;
 }
 
+/* Item classes */
+
+.item-link img {
+	cursor: pointer;
+}
+.item-page a {
+	color: #73738c;
+	font-size: 12px;
+}
+.item-link a , .item-file a{
+	color: #73738c;
+	font-size: 12px;
+}
+.item-link a:hover {
+	color: #333;
+}
+
 .item-section {
      width: 820px;
      margin: 0px auto;
@@ -209,15 +228,15 @@ input.item_tools_inactive:hover {
 }
 
 .item-box {
-	width: 360px;
+	width: 380px;
 	min-height:120px;
 	display: inline-block;
 	overflow: hidden;
-	padding: 8px 14px;
+	/*padding: 8px 14px;*/
 	margin: 4px;
 	text-align: left;
 	background-color: #fff;
-	border: 1px solid #999;
+	/*border: 1px solid #999;*/
 	border-radius: 8px;
 	color: #333;
 }
@@ -227,11 +246,32 @@ input.item_tools_inactive:hover {
 	overflow: hidden;
 }
 
+.item-box .item-nodes .item-title, .item-info {
+	padding: 8px 8px;
+	border-bottom: 0px solid #EEE;
+	margin-bottom: 0px;
+}
+	
 .item-nodes {
 	min-height: 240px;
 }
 
+.item-meta {
+	padding-top: 8px;
+	border-top: 2px solid #EEE;
+}
+
+.item-box .item-meta {
+	padding: 8px;
+	border-bottom: 0px solid #EEE;
+	margin-bottom: 8px;
+}
+
 .item-title {
+	padding-bottom: 8px;
+	border-bottom: 2px solid #EEE;
+	margin-bottom: 8px;
+	
 	font-size: 2em;
 	line-height: 1em; 
 	color: #333;
@@ -242,26 +282,46 @@ input.item_tools_inactive:hover {
 	margin: 8px 0px;
 }
 
+.item-link {
+	margin-bottom: 2px;
+}
+
 .item-page .item-info {
 	min-height: 60px;
 }
 
-.item-tools {
+.item-tools, .item-tools_grey, .item-tools_dark {
 	display: inline-block;
-	background-color: #DCDCDC;
+	background-color: #333;
 	border-radius: 14px;
 	padding: 6px 10px;
 	margin-left: 4px;
-	color: #fff;
+	color: #999;
 	font-size: 14px;
 	font-style: none;
 	font-weight: bold;
 	font-family: arial;
 	cursor: pointer;
 	margin-bottom: 8px;
+	
+    border: none !important;
+    border: 0;
 }
 
 .item-tools:hover {
+	background-color: #DCDCDC;
+}
+
+.item-tools_grey {
+	background-color: #DCDCDC;
+	color: #333;
+}
+
+.item-tools_grey a {
+	color: #333;
+}
+
+.item-tools_dark {
 	background-color: #333;
 }
 
@@ -272,27 +332,39 @@ input.item_tools_inactive:hover {
 	margin-right: 4px;
 	background-color: #ccc;
 	background-image: url(./img/icon/user-default.png);
-	background-size: 130%;
+	background-size: cover;
 	background-position: center;
 	border-radius: 50%;
 	cursor: pointer;
  }
+ 
 .item-date {
 	color: #aaa;
 	font-size: 11px;
 }
 
-.item-link img {
+select.item-dropdown{
+    display: inline-block;
+	width: 100%;
+	background-color: #333;
+	border-radius: 14px;
+	border-width: 0px;
+	padding: 6px 10px;
+	margin-left: 4px;
+	margin-bottom: 8px;
+	color: #fff;
+	font-size: 14px;
+	font-style: none;
+	font-weight: bold;
+	font-family: arial;
 	cursor: pointer;
 }
-.item-page a {
-	color: #73738c;
-	font-size: 12px;
+
+select.item-dropdown option {
+	color: #222;
+	background-color: #FFF;
 }
-.item-link a {
-	color: #73738c;
-	font-size: 12px;
-}
-.item-link a:hover {
-	color: #333;
+
+:focus {
+	/*outline: 0;*/
 }

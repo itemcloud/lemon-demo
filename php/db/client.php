@@ -27,6 +27,13 @@
 
 class Client extends Core {
 	
+	function enableAddOns() {
+		global $addOns;
+		if(isset($addOns)) {
+			$this->addOns = $addOns;
+		}
+	}
+		
 	function authorizeUser () {
 		$this->auth = false;
 		$this->owner = false;
@@ -45,23 +52,47 @@ class Client extends Core {
 
 			///-- getUser() --///
 			$user = $this->getUser($_COOKIE[$uid]);
-			$this->profile = $user;		
-		} return $this->auth;		
+			$this->profile = $this->getUserProfile($_COOKIE[$uid]);
+		} return $this->auth;
 	}
 
 	function getUser ($user_id) {
 		$stream = $this->stream;
-		
 	  	if(!$stream){ return false; }
 	  
-		$input = "SELECT * FROM user WHERE user_id='$user_id'";
+		$input = "SELECT user.user_id FROM user"
+			. " WHERE user_id='$user_id'";
+			
 		$query = $stream->query($input);
 		return $query->fetch_assoc();
 	}
 
+	function getUserProfile ($user_id) {
+		$stream = $this->stream;		
+	  	if(!$stream){ return false; }	
+		
+		$input = "SELECT user_profile.*, user.date"
+			. " FROM user_profile, user"
+			. " WHERE user_profile.user_id='$user_id'"
+			. " AND user_profile.user_id=user.user_id";
+
+		$query = $stream->query($input);
+		$profile_loot_array = $query->fetch_assoc();
+		
+		if($this->addOns) {
+			foreach($this->addOns as $addOn) {
+				if(isset($addOn['profile-request'])) { 
+					$addon_request = new $addOn['profile-request']($this->stream, $profile_loot_array, $user_id);
+					$profile_loot_array = $addon_request->getAddOnLoot();
+				}
+			}
+		}
+		return $profile_loot_array;
+	}
+	
 	function handleProfileRequest() {
 		if(!isset($_GET['user'])) { return false; }
-		return $this->getUser($_GET['user']);
+		return $this->getUserProfile($_GET['user']);
 	}
 	
 	function signIn ($e, $p) {
@@ -94,6 +125,10 @@ class Client extends Core {
 			$user_serial = mysqli_insert_id($stream);
 
 			if($user_serial) {
+				
+				$profile_insert = "INSERT INTO user_profile (user_id, level) VALUES('" . $user_serial . "', '3')";
+				mysqli_query($stream, $profile_insert);
+				
 				setcookie('ICC:UID', $user_serial, time()+(36000*24), '/', '');
 			} else { echo "FAIL"; }
 		}
@@ -111,25 +146,52 @@ class itemManager {
 	var $stream;
 
 	function __construct ($stream) {
-		   $this->stream = $stream;
+		$this->stream = $stream;
+		$this->meta = NULL;
+		$this->items = NULL;
+		$this->addOns = NULL;
+		
+		$this->classes = $this->getItemClasses();
+		$this->types = $this->getItemTypes();
 	}
-
+	
+	function enableAddOns () {
+		global $addOns;
+		if(isset($addOns)) {
+			$this->addOns = $addOns;
+		}
+	}
+	
 	function handleItemRequest() {
+
+		if($this->addOns) {
+			foreach($this->addOns as $addOn) {
+				if(isset($addOn['post-handler'])) {
+					//POST ADDONS	
+					$addonClass = new $addOn['post-handler']($this->stream);
+					$returnItems = $addonClass->handleAddOnPost($this);
+					if($returnItems) { $this->items = $returnItems; return $this->items; }
+				}
+			}
+		}
+		
 		if(isset($_GET['connect'])) {
-		  return;
+		    return;
 		} elseif(isset($_POST['delete'])) {
 			global $message;
 			$message = "The item has been deleted.";
-				
-			$this->deleteUserItem($_POST['delete']); 
-			$items = $this->getUserItems($_GET['user']);
-		} elseif(isset($_GET['id'])){
-			$items = $this->getItemById($_GET['id']);
-		} elseif(isset($_GET['user'])) {
-			$items = $this->getUserItems($_GET['user']);
+			$this->deleteUserItem($_POST['delete']);
+			$this->items = $this->getUserItems($_GET['user']);
+			return $this->items;
+		}
+		
+		if(isset($_GET['id'])){
+			$this->items = $this->getItemById($_GET['id']);
+		} else if(isset($_GET['user'])){
+			$this->items = $this->getUserItems($_GET['user']);
 		} else {
-			$items = $this->getAllItems();
-		} return $items;
+			$this->items = $this->getAllItems();
+		} return $this->items;
 	}
 
 	function insertItem($type, $title, $info, $file) {
@@ -164,7 +226,7 @@ class itemManager {
 	}
 
 	function getUserItems($user_serial) {
-		$stream = $this->stream;
+		$stream = $this->stream;	   
 		$quest = "SELECT item.*, user_items.user_id"
 		       . " FROM item, user_items"
 		       . " WHERE user_items.user_id=$user_serial"
@@ -177,7 +239,16 @@ class itemManager {
 			while($loot=$item_loot->fetch_assoc()) {
 				$item_loot_array[] = $loot;
 			}
-		}			
+		}
+		
+		if(isset($this->addOns) == true) {
+			foreach($this->addOns as $addOn) {
+				if(isset($addOn['item-request'])) { 
+					$addon_request = new $addOn['item-request']($this->stream, $item_loot_array);
+					$item_loot_array = $addon_request->getAddOnLoot();
+				}
+			}
+		}
 		return $item_loot_array;
 	}
 
@@ -194,7 +265,16 @@ class itemManager {
 			while($loot=$item_loot->fetch_assoc()) {
 				$item_loot_array[] = $loot;
 			}
-		}			
+		}
+		
+		if(isset($this->addOns) == true) {
+			foreach($this->addOns as $addOn) {
+				if(isset($addOn['item-request'])) { 
+					$addon_request = new $addOn['item-request']($this->stream, $item_loot_array);
+					$item_loot_array = $addon_request->getAddOnLoot();
+				}
+			}
+		}
 		return $item_loot_array;
 	}
 	
@@ -207,19 +287,27 @@ class itemManager {
 	}
 
 	function getItemById($item_id) {
-		$stream = $this->stream;
 		$quest = "SELECT item.*, user_items.user_id"
-		       	 . " FROM item, user_items"
+		     . " FROM item, user_items"
 			 . " WHERE item.item_id='$item_id'"
 			 . " AND item.item_id=user_items.item_id";
 		
-		$item_loot = mysqli_query($stream, $quest);
+		$item_loot = mysqli_query($this->stream, $quest);
 		$item_loot_array = NULL;
 		if($item_loot) {
 			while($loot=$item_loot->fetch_assoc()) {
 				$item_loot_array[] = $loot;
 			}
-		}			
+		}
+		
+		if(isset($this->addOns) == true) {
+			foreach($this->addOns as $addOn) {
+				if(isset($addOn['item-request'])) { 
+					$addon_request = new $addOn['item-request']($this->stream, $item_loot_array);
+					$item_loot_array = $addon_request->getAddOnLoot();
+				}
+			}
+		}		
 		return $item_loot_array;
 	}		
 	
@@ -288,7 +376,7 @@ class itemManager {
 		return $type_loot_array;
 	}
 
-	function handleItemUpload($classes, $client) {
+	function handleItemUpload($client) {
 		 if (isset($_POST['itc_class_id'])) {
 			$insertOk = "1";
 			$target_dir = "files/";			
@@ -299,6 +387,7 @@ class itemManager {
 			$info = (isset($_POST['itc_info'])) ? $_POST['itc_info'] : "";
 			$file = (isset($_POST['itc_file'])) ? $_POST['itc_file'] : "";
 
+			$classes = $this->classes;
 			$class_form = $classes[$posted_class];
 			$class_id = $class_form['class_id'];
 			
