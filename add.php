@@ -35,15 +35,16 @@ $client->openConnection();
 
 $auth = $client->authorizeUser(); //AUTHORIZE USER ACCOUNT
 $profile = $client->handleProfileRequest(); //CHECK FOR PROFILE REQUEST IN URL
-$owner = ($profile['user_id'] == $client->profile['user_id']) ? true : false;
+$owner = ($profile['user_id'] == $client->profile['user_id'] && $auth) ? true : false;
 
 $itemManager = $client->itemManager();
-$types = $itemManager->getItemTypes();
-$classes = $itemManager->getItemClasses();
-$message = (isset($_POST['itc_class_id'])) ? $itemManager->handleItemUpload($classes, $client) : false;
+$classes = $itemManager->classes;
+$types = $itemManager->types;
+
+$message = (isset($_POST['itc_class_id'])) ? $itemManager->handleItemUpload($client) : false;
 $client->closeConnection();
 	      
-$pageManager = new pageManager(NULL, $classes, $_ROOTweb);
+$pageManager = new pageManager($itemManager, $_ROOTweb);
 $pageManager->displayDocumentHeader([
 	'title' => 'i t e m c l o u d',
 	'scripts' => ['./js/welcome.js',
@@ -51,7 +52,7 @@ $pageManager->displayDocumentHeader([
 ]);
 
 $pageManager->displayPageBanner($client);
-if (!$auth){ $pageManager->displayJoinForm(); }
+if (!$auth && !$items){ $pageManager->displayJoinForm(); }
 else { $pageManager->displayPageOmniBox($classes, $message); }
 
 $pageManager->displayDocumentFooter([
