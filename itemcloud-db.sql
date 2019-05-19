@@ -1,15 +1,13 @@
 -- phpMyAdmin SQL Dump
--- version 4.8.4
--- https://www.phpmyadmin.net/
+-- version 4.5.1
+-- http://www.phpmyadmin.net
 --
--- Host: localhost
--- Generation Time: Mar 03, 2019 at 11:21 PM
--- Server version: 10.0.36-MariaDB-0ubuntu0.16.04.1
--- PHP Version: 7.0.32-0ubuntu0.16.04.1
+-- Host: 127.0.0.1
+-- Generation Time: May 19, 2019 at 06:36 PM
+-- Server version: 10.1.10-MariaDB
+-- PHP Version: 5.6.19
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
-START TRANSACTION;
 SET time_zone = "+00:00";
 
 
@@ -138,18 +136,6 @@ CREATE TABLE `user` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `user_auth`
---
-
-CREATE TABLE `user_auth` (
-  `user_id` int(11) NOT NULL,
-  `level` int(11) NOT NULL DEFAULT '3',
-  `email_alerts` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `user_items`
 --
 
@@ -157,19 +143,6 @@ CREATE TABLE `user_items` (
   `entry` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `item_id` int(11) NOT NULL,
-  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `user_labels`
---
-
-CREATE TABLE `user_labels` (
-  `entry` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `label_id` int(11) NOT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -208,21 +181,9 @@ ALTER TABLE `user`
   ADD PRIMARY KEY (`user_id`);
 
 --
--- Indexes for table `user_auth`
---
-ALTER TABLE `user_auth`
-  ADD PRIMARY KEY (`user_id`);
-
---
 -- Indexes for table `user_items`
 --
 ALTER TABLE `user_items`
-  ADD PRIMARY KEY (`entry`);
-
---
--- Indexes for table `user_labels`
---
-ALTER TABLE `user_labels`
   ADD PRIMARY KEY (`entry`);
 
 --
@@ -233,45 +194,32 @@ ALTER TABLE `user_labels`
 -- AUTO_INCREMENT for table `item`
 --
 ALTER TABLE `item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT;
-
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 --
 -- AUTO_INCREMENT for table `item_class`
 --
 ALTER TABLE `item_class`
   MODIFY `class_id` int(16) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
-
 --
 -- AUTO_INCREMENT for table `item_nodes`
 --
 ALTER TABLE `item_nodes`
   MODIFY `entry` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
-
 --
 -- AUTO_INCREMENT for table `item_type`
 --
 ALTER TABLE `item_type`
   MODIFY `entry` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=208;
-
 --
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
   MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT;
-
 --
 -- AUTO_INCREMENT for table `user_items`
 --
 ALTER TABLE `user_items`
   MODIFY `entry` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `user_labels`
---
-ALTER TABLE `user_labels`
-  MODIFY `entry` int(11) NOT NULL AUTO_INCREMENT;
-COMMIT;
-
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
