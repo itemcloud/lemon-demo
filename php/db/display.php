@@ -117,7 +117,8 @@ class pageManager extends Document {
 			if($this->addOns) {
 				foreach($this->addOns as $addOn) {
 					if(isset($addOn['profile-display'])){ 
-						$addonClass = new $addOn['profile-display']($profile);
+						global $client;
+						$addonClass = new $addOn['profile-display']($client->profile);
 						$addonClass->updateOutputHTML($this);
 					}
 				}

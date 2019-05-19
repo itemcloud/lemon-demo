@@ -40,8 +40,8 @@ class Client extends Core {
 			
 		///-- serial --///
 		$this->user_serial = false;
-
 		$uid = $this->usercookie;
+		
 		if (isset($_COOKIE[$uid])) {
 			$this->auth = true;
 			
@@ -57,10 +57,10 @@ class Client extends Core {
 		$stream = $this->stream;
 	  	if(!$stream){ return false; }
 	  
-		$input = "SELECT user.user_id FROM user"
+		$user_auth = "SELECT * FROM user"
 			. " WHERE user_id='$user_id'";
 					
-		$query = $stream->query($input);
+		$query = $stream->query($user_auth);
 		$user = $query->fetch_assoc();
 		
 		if($this->addOns) {
@@ -75,14 +75,19 @@ class Client extends Core {
 
 	function signIn ($e, $p) {
 		$stream = $this->stream;
+	  	if(!$stream){ return false; }
 
-		$user_auth = "SELECT * FROM user WHERE email='$e' AND password='" . md5($p) . "'";
-		$result = mysqli_query($stream, $user_auth);
+		$user_auth = "SELECT * FROM user"
+			. " WHERE email='$e' AND password='" . md5($p) . "'";
+			
+		$query = $stream->query($user_auth);
+		$user = $query->fetch_assoc();
 
-		if($result) {
-			$result = $result->fetch_assoc();
-			$user_serial = $result['user_id'];
-			setcookie('ICC:UID', $user_serial, time()+(36000*24), '/', '');
+		if(isset($user)) {
+			$user_serial = $user['user_id'];
+			$uid = $this->usercookie;
+			
+			setcookie($uid, $user_serial, time()+(36000*24), '/', '');
 		} else {
 			echo "FAIL";
 		}
@@ -92,9 +97,9 @@ class Client extends Core {
 		$stream = $this->stream;
 
 		$user_auth = "SELECT * FROM user WHERE email='$e'";
-		$result = mysqli_query($stream, $user_auth);
+		$user = $stream->query($user_auth);
 
-		if($result->fetch_assoc()) {
+		if($user->fetch_assoc()) {
 			echo "ACTIVE";
 		} else {
 			$user_insert = "INSERT INTO user (email, password, date) VALUES('" . $e . "', '" . md5($p) . "', '" . date('Y-m-d h:i:s') . "')";
@@ -103,7 +108,6 @@ class Client extends Core {
 			$user_serial = mysqli_insert_id($stream);
 
 			if($user_serial) {
-				
 				$profile_insert = "INSERT INTO user_profile (user_id, level) VALUES('" . $user_serial . "', '3')";
 				mysqli_query($stream, $profile_insert);
 				
