@@ -116,13 +116,13 @@ class pageManager extends Document {
 			
 			if($this->addOns) {
 				foreach($this->addOns as $addOn) {
-					if(isset($addOn['profile-display'])){ 
-						global $client;
-						$addonClass = new $addOn['profile-display']($client->profile);
+					if(isset($addOn['profile-display'])){
+						$addonClass = new $addOn['profile-display']($profile);
 						$addonClass->updateOutputHTML($this);
 					}
 				}
 			}
+			
 			$profileBanner = $this->profileOutput;
 		    $this->displayWrapper('div', 'section', 'section_inner', $profileBanner);
 		}	
