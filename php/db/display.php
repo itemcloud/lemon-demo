@@ -231,7 +231,7 @@ class pageManager extends Document {
 		if(!isset($this->items)){ return "No items found."; }
 
 		foreach($this->items as $item) {
-			$item_html .= $this->handleitemType($item, $box_class, $info_limit);
+			$item_html .= $this->handleItemType($item, $box_class, $info_limit);
 		}
 		return $item_html;
 		
@@ -289,27 +289,27 @@ class pageManager extends Document {
 			
 		switch ($item['class_id']) {
 			case 2: // item_type: link
-				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id);
+				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id, $info_limit);
 				$itemDisplay->fileOutput = $itemDisplay->linkOverride();
 				break;
 			case 3: // item_type: download
-				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id);
+				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id, $info_limit);
 				$itemDisplay->fileOutput = $itemDisplay->downloadOverride();
 				break;
 			case 4: // item_type: photo
-				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id);
+				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id, $info_limit);
 				$itemDisplay->fileOutput = $itemDisplay->photoOverride();
 				break;
 			case 5: // item_type: audio
-				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id);
+				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id, $info_limit);
 				$itemDisplay->fileOutput = $itemDisplay->audioOverride();
 				break;
 			case 6: // item_type: video
-				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id);
+				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id, $info_limit);
 				$itemDisplay->fileOutput = $itemDisplay->videoOverride();
 				break;
 			default:
-				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id);
+				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id, $info_limit);
 				break;
 		}
 		
@@ -337,7 +337,7 @@ class pageManager extends Document {
 ** -------------------------------------------------------- */
 
 class ItemDisplay {
-	function __construct ($item, $webroot, $box_class, $user_id) {		
+	function __construct ($item, $webroot, $box_class, $user_id, $info_limit) {		
 		$this->item = $item;
 		
 		$this->item_id = $item['item_id'];
@@ -357,7 +357,7 @@ class ItemDisplay {
 		$this->file = $item['file'];
 
 		$this->titleOutput = $this->titleDisplayHTML();
-		$this->infoOutput = $this->infoDisplayHTML();
+		$this->infoOutput = $this->infoDisplayHTML($info_limit);
 		$this->fileOutput = $this->fileDisplayHTML();
 		$this->metaOutput = $this->itemMetaLinks();
 		$this->userTools = $this->itemUserTools();
@@ -374,8 +374,10 @@ class ItemDisplay {
 		return $title_html;
 	}
 	
-	function infoDisplayHTML () {
-		$info_html = '<div class="item-info">' . nl2br(chopString($this->info, 240)) . '</div>';
+	function infoDisplayHTML ($limit) {
+		$extra = "<div class=\"item-tools_grey\" onClick=\"window.location='./?id=" . $this->item_id . "'\" title=\"Show more\">...</div>";
+		$info_string = ($limit) ? chopString($this->info, $limit,  $extra) : $this->info;
+		$info_html = '<div class="item-info">' . nl2br($info_string) . '</div>';
 		return $info_html;
 	}
 	
@@ -405,7 +407,7 @@ class ItemDisplay {
 		}
 	}	
 	
-	function displayHTML() {
+	function displayHTML($info_limit) {
 		$item_html = "<div onmouseover=\"dom('userTools" . $this->item_id . "').style.display='block';\" onmouseout=\"dom('userTools" . $this->item_id . "').style.display='none';\" class=\"" . $this->box_class . "\">";
 		$item_html .= "<div style='position: relative;'><div id='userTools" . $this->item_id . "' style='position: absolute; right: 4px; top: 4px; display: none'>" . $this->userTools . "</div></div>";
 		$item_html .= "<div class='item-nodes'>";
@@ -422,7 +424,7 @@ class ItemDisplay {
 	}
 	
 	function linkOverride () {
-		$file_name_text = chopString($this->file, 54);
+		$file_name_text = chopString($this->file, 54, '...');
 
 		$file_display = '<div class="item-link"><center>'
 			  . '<div class="file_text">' . $file_name_text . '</div>'
@@ -435,7 +437,7 @@ class ItemDisplay {
 	function downloadOverride () {
 		$fn = $this->file;
 		$fn = substr($fn, strrpos($fn, '/')+1, strlen($fn));
-		$file_name_text = chopString($fn, 54);
+		$file_name_text = chopString($fn, 54, '...');
 		
 		$file_display = '<div class="item-link"><center>'
 				  . '<div class="file_text">' . $file_name_text . '</div>'
