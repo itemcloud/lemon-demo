@@ -322,7 +322,7 @@ class pageManager extends Document {
 			}
 		}
 		
-		$itemDisplay->output = $itemDisplay->displayHTML();
+		$itemDisplay->output = $itemDisplay->displayHTML($info_limit);
 		return $itemDisplay->output;
 	}
 
@@ -362,7 +362,7 @@ class ItemDisplay {
 		$this->metaOutput = $this->itemMetaLinks();
 		$this->userTools = $this->itemUserTools();
 		
-		$this->output = $this->displayHTML();
+		$this->output = $this->displayHTML($info_limit);
 	}
 	
 	function updateAddOns ($addons) {
@@ -382,7 +382,7 @@ class ItemDisplay {
 	}
 	
 	function fileDisplayHTML () {
-		$file_name_text = chopString($this->file, 34);
+		$file_name_text = chopString($this->file, 34, '...');
 		$file_display = '<div class="item-link"><center>'
 			  . '<div class="file_text">' . $file_name_text . '</div>'
 			  . '<a href="' . $this->file . '" title="' . $this->file . '" target="_blank">'
