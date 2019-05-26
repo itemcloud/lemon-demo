@@ -159,10 +159,10 @@ class itemManager {
 		if($this->addOns) {
 			foreach($this->addOns as $addOn) {
 				if(isset($addOn['post-handler'])) {
-					//POST ADDONS	
-					$addonClass = new $addOn['post-handler']($this->stream);
-					$returnItems = $addonClass->handleAddOnPost($this);
-					if($returnItems) { $this->items = $returnItems; return $this->items; }
+					//POST ADDONS
+					$addonClass = new $addOn['post-handler']($this->stream);					
+					$addonReturn = $addonClass->handleAddOnPost($this);
+					if($addonReturn == "active") { return $this->items; }
 				}
 			}
 		}
@@ -171,7 +171,7 @@ class itemManager {
 			$this->items = $this->getItemById($_GET['id']);
 		} else if(isset($_GET['user'])){
 			$this->items = $this->getUserItems($_GET['user']);
-		} else {
+		} else if(!$this->items) {
 			$this->items = $this->getAllItems();
 		} return $this->items;
 	}
