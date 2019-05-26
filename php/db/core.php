@@ -161,10 +161,12 @@ Class DateService {
 ** ------------------- HELP FUNCTIONS --------------------- **
 ** -------------------------------------------------------- */
 
-function chopString($str, $length) {
+function chopString($str, $length, $extra) {
   $text = $str;
   if(strlen($text)>$length) {
-    $text = substr($text, 0, $length)."...";
-  } return $text;
+    $text = substr($text, 0, $length);
+	$text .= (isset($extra)) ? $extra : "";
+  }
+  return $text;
 }
 ?>
