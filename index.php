@@ -20,7 +20,6 @@
 ** @copyright  Copyright (c) 2019 ITEMCLOUD (http://www.itemcloud.org)
 ** @license    http://www.gnu.org/licenses/gpl.html Open Source GPL 3.0 license
 */
-
 $_ROOTdir = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF']);
 $_ROOTweb = "http://".$_SERVER['HTTP_HOST'].dirname($_SERVER['PHP_SELF'])."/";
 
@@ -53,17 +52,19 @@ $pageManager = new pageManager($itemManager, $_ROOTweb);
 $pageManager->enableAddOns();
 
 $pageManager->displayDocumentHeader([
-	'title' => 'i t e m c l o u d - Items (' . count($items) . ')',
+	'title' => 'DEFIANT',
 	'scripts' => ['./js/welcome.js',
-				'./js/lib.js']
+				  './js/lib.js'],
+	'styles' => ['./frame.css',
+				 './addon.css']
 ]);
 
-$pageManager->displayPageBanner($client);
+$pageManager->displayPageBanner($client, $auth);
 if (!$auth && !$items) { $pageManager->displayJoinform(); }
 else { $pageManager->displayPageItems(); }
 
 $pageManager->displayDocumentFooter([
-	'copyright' => 'Copyright &copy;2019',
+	'copyright' => 'Copyright &copy;2019-2020',
 	'copyleft' => 'Powered by <a href="http://www.itemcloud.org">'
 				. '<img src="img/itemcloud-icon.png" class="footer_icon">'
 				. '</a><sup>&trade;</sup>'

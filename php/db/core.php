@@ -76,13 +76,15 @@ Class DateService {
 	}
 	
 	function make_date_time ($date_time_string) {
-		$string = explode(" ", $date_time_string);
+		if(!$date_time_string) return;
+		$string = explode(" ", $date_time_string . " ");
 		$date = $this->make_date($string[0]);
 		$time = $this->make_time($string[1]);
 		return $this->make_box_date($string[0]);
 	}
 
 	function make_date ($date_string) {
+		if(!$date_string) return;
 		$calender = explode("-", $date_string);
 		$year = $calender[0];
 		$month = $calender[1];
@@ -100,8 +102,7 @@ Class DateService {
 		$month_name['09'] = "Sept";
 		$month_name['10'] = "Oct";
 		$month_name['11'] = "Nov";
-		$month_name['12'] = "Dec";
-		
+		$month_name['12'] = "Dec";	
 		return  $month_name[$month] . " " . $day . ", " . $year;
 	}
 
