@@ -112,7 +112,7 @@ class documentBanner {
 	}
 	
 	function pageBannerLogo () {
-		return "<div class=\"logo\" onClick=\"window.location='./'\">&#9854; <img src=\"./img/icon/logo.png\" width=\"120px\"/></div>";	
+		return "<div class=\"logo\" onClick=\"window.location='./'\">lemon</div>";	
 	}
 	
 	function pageBannerUser() {
@@ -336,7 +336,7 @@ class pageManager extends Document {
 				}
 			}
 		}
-
+		
 		return $itemDisplay->output;
 	}
 
