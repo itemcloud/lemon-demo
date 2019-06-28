@@ -16,6 +16,10 @@ hr {
 	border: 1px solid #EEE;
 }
 
+hr.buffer {
+	margin: 20px 0px;
+}
+
 a { 
 	color: white;
 	cursor: pointer;
@@ -49,10 +53,20 @@ a {
 	vertical-align:middle;
 }
 
-.user_links { 
-	float: right;
+.nav_links, .user_links { 
 	margin: 14px 6px 0px 0px;
 	font-size: 14px;
+}
+.nav_links { 
+	float: left;
+}
+.nav_links a {
+	text-decoration: none;
+	margin-left: 20px;
+}
+
+.user_links { 
+	float: right;
 }
 
 .section {
@@ -97,7 +111,6 @@ a {
 .logo {
 	float: left;
 	margin: 4px;
-	padding-top: 2px;
 	font-size: 1.4em;
 	cursor: pointer;
 }
@@ -139,7 +152,7 @@ input.form_button {
 	height: 34px;
 	margin-top: 4px;
 	padding: 6px 10px;
-    border: none;
+	border: none;
 	cursor: pointer;
 	background-color: #FFF;
 	color: #111;
@@ -155,8 +168,8 @@ input.item_tools {
 	border: none;
 	background-color: #CCC;
 	border-radius: 14px;
-    border: none !important;
-    border: 0;
+	border: none !important;
+	border: 0;
 	padding: 6px 10px;
 	margin-left: 4px;
 	color: #999;
@@ -181,7 +194,7 @@ input.item_tools_inactive:hover {
 	text-decoration: underline;
 }
 
-.splash-page { 
+.splash-page, .page { 
 	padding: 20px 0px;
 	min-height: 540px;
 }
@@ -251,10 +264,6 @@ input.item_tools_inactive:hover {
 	border-bottom: 0px solid #EEE;
 	margin-bottom: 0px;
 }
-	
-.item-nodes {
-	min-height: 240px;
-}
 
 .item-meta {
 	padding-top: 8px;
@@ -282,8 +291,10 @@ input.item_tools_inactive:hover {
 	margin: 8px 0px;
 }
 
-.item-link {
-	margin-bottom: 2px;
+.item-page .item-link {
+    width: 100%;
+    margin-bottom: 2px;
+    padding: 2px;
 }
 
 .item-page .item-info {

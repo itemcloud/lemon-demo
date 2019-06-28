@@ -20,7 +20,6 @@
 ** @copyright  Copyright (c) 2019 ITEMCLOUD (http://www.itemcloud.org)
 ** @license    http://www.gnu.org/licenses/gpl.html Open Source GPL 3.0 license
 */
-
 $_ROOTdir = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF']);
 $_ROOTweb = "http://".$_SERVER['HTTP_HOST'].dirname($_SERVER['PHP_SELF'])."/";
 
@@ -28,6 +27,11 @@ include($_ROOTdir .'/php/db' . '/config.php'); //DATABASE: Configuration
 require_once($_ROOTdir .'/php/db' . '/core.php'); //DATABASE: Core MySQL Connection, DateService
 require_once($_ROOTdir .'/php/db' . '/client.php'); //DATABASE: Client extends Core, itemManager, uploadManager
 require_once($_ROOTdir .'/php/db' . '/display.php'); //DISPLAY: PageManager extends Document
+
+//ADDONS
+foreach (glob($_ROOTdir . "/php/addons/*.php") as $filename){
+   require_once($filename);
+}
 
 //DATABASE: MySQL Connection
 $client = new Client();
@@ -46,12 +50,14 @@ $pageManager = new pageManager($itemManager, $_ROOTweb);
 $itemManager->enableAddOns();
 
 $pageManager->displayDocumentHeader([
-	'title' => 'i t e m c l o u d',
+	'title' => 'DEFIANT',
 	'scripts' => ['./js/welcome.js',
-		  './js/lib.js']
+				  './js/lib.js'],
+	'styles' => ['./frame.css',
+				 './addon.css']
 ]);
 
-$pageManager->displayPageBanner($client);
+$pageManager->displayPageBanner($client, $auth);
 if (!$auth && !$items){ $pageManager->displayJoinForm(); }
 else { $pageManager->displayPageOmniBox(); }
 

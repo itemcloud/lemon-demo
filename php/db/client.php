@@ -361,7 +361,7 @@ class itemManager {
 	function handleItemUpload($client) {
 		 if (isset($_POST['itc_class_id'])) {
 			$insertOk = "1";
-			$target_dir = "files/";			
+			$target_dir = "files/";
 			$filesize = 10485760; //10MB
 			
 			$posted_class = $_POST['itc_class_id'];			

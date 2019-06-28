@@ -28,20 +28,22 @@
 class Document {
 	
 	function displayDocumentHeader($meta) {
-		$scripts = '';
 		foreach($meta['scripts'] as $script => $src) { 
-		 	$scripts .= '<script src="' . $src . '"></script>';
+		 	$scripts = (isset($scripts)) ? $scripts . '<script src="' . $src . '"></script>' : '<script src="' . $src . '"></script>';
 		}
+		
+		foreach($meta['styles'] as $style => $src) { 
+		 	$styles = (isset($styles)) ? $styles . '<link rel="stylesheet" type="text/css" href="' . $src . '">' : '<link rel="stylesheet" type="text/css" href="' . $src . '">';
+		}		
 
 		$header = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
-
 			 . '<html>'
 		 	 . '<head>'
 		 	 . '<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />'
 		 	 . '<title>' . $meta['title'] . '</title>'
-		 	 . '<link rel="stylesheet" type="text/css" href="frame.css">'
 		 	 . '<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">';
-
+		 	 
+		$header .= $styles;
 		$header .= $scripts;
 		$header .= '</head>';
 		$header .= '<body>';
@@ -60,30 +62,74 @@ class Document {
 			. '</div>';
 			
 		$footer = $left . $right . '<div class="clear"></div>';
-		$this->displayWrapper('div', 'footer', 'footer_inner', $footer);
+		$footerDisplay = $this->displayWrapper('div', 'footer', 'footer_inner', $footer);
+		
+		echo $footerDisplay;
 		echo "</body></html>";
 	}
 
-	function displayPageBanner ($user) {
-		$auth = $user->auth;
-		 
-		$logo = "<div class=\"logo\" onClick=\"window.location='./'\">lemon</div>";		
-		$user_links = "<div class=\"user_links\">";
-		if($auth) {
-			  $user_links .= '+ <a href="add.php">ADD</a>' . ' | '
-			  	      . '<a href="./?user=' . $user->user_serial . '">MY ITEMS</a>' . ' | '
-			  	      . '<a onclick="logout()"><u>SIGN OUT</u></a>';
+	function displayPageBanner ($user, $auth) {
+		$banner = new documentBanner($user, $auth);
+		
+		global $addOns;
+		if($addOns) {
+			foreach($addOns as $addOn) {
+				if(isset($addOn['banner-display'])){
+					$addonClass = new $addOn['banner-display']($user, $auth);
+					$addonClass->updateOutputHTML($banner);
+				}
+			}
 		}
-		else { $user_links .=  '<a href="./?connect=1">SIGN IN</a>'; }
-		$user_links .= '</div>';
-
-		$this->displayWrapper('div', 'banner', 'banner_inner', $user_links . $logo);
+		
+		$banner_output = $banner->outputHTML();
+		echo $this->displayWrapper('div', 'banner', 'banner_inner', $banner_output);
 	}
-	
+
+	function displayWrapper ($tag, $class, $class_inner, $items) {
+		$wrap = "<$tag class='$class'><$tag class='$class_inner'>$items</$tag><div class='clear'></div></$tag>";
+		return $wrap;
+	}
+		
 	function joinForm () {
 		 $joinForm = "<div id=\"joinForm\"></div>"
 		       	   . "<script>joinForm('joinForm');</script>";
 		 return $joinForm;
+	}
+}
+
+class documentBanner {
+	function __construct ($user, $auth) {
+		$this->user = $user;
+		$this->auth = $auth;
+		
+		$this->logo = $this->pageBannerLogo();
+		$this->links = $this->pageBannerLinks();
+		$this->user_links = $this->pageBannerUser();
+	}
+
+	function outputHTML () {
+		return $this->logo . $this->links . $this->user_links;	
+	}
+	
+	function pageBannerLogo () {
+		return "<div class=\"logo\" onClick=\"window.location='./'\">&#9854; <img src=\"./img/icon/logo.png\" width=\"120px\"/></div>";	
+	}
+	
+	function pageBannerUser() {
+		$user_links = '<div class="user_links">';
+		if($this->auth) {
+			  $user_links .= '+ <a href="add.php">Add</a>' . ' &nbsp;'
+			  	      . '<a onclick="logout()"><u>Sign Out</u></a>';
+		}
+		else { $user_links .=  '<a href="./?connect=1">Sign In</a>'; }
+		$user_links .= '</div>';		
+		return $user_links;
+	}
+
+	function pageBannerLinks() {
+		$user = $this->user;
+		$links = "";		
+		return $links;
 	}
 }
 
@@ -99,7 +145,8 @@ class pageManager extends Document {
 		$this->classes = $itemData->classes;
 		$this->ROOTweb = $ROOTweb;
 		$this->addOns = NULL;
-		$this->profileOutput = "";
+		$this->pageOutput = "";
+		$this->extraCSS = (empty($_GET) || isset($_GET['browse'])) ? " splash-page" : " page";
 	}
 	
 	function enableAddOns () {
@@ -110,37 +157,27 @@ class pageManager extends Document {
 	}
 	
 	function displayPageItems () {
-		if(isset($this->meta['profile'])) {
-			$profile = $this->meta['profile'];
-  		    $this->profileOutput = $this->profileBanner($profile);
-			
-			if($this->addOns) {
-				foreach($this->addOns as $addOn) {
-					if(isset($addOn['profile-display'])){
-						$addonClass = new $addOn['profile-display']($profile);
-						$addonClass->updateOutputHTML($this);
-					}
-				}
-			}
-			
-			$profileBanner = $this->profileOutput;
-		    $this->displayWrapper('div', 'section', 'section_inner', $profileBanner);
-		}	
-		
 		$itemsPage = $this->handlePageItems();
-		if(isset($this->meta['owner'])) {
-  		    $omniBox = $this->displayOmniBox();
-			$itemsPage = $omniBox . $itemsPage;
-		}
-		$this->displayWrapper('div', 'section', 'section_inner splash-page', $itemsPage);	
+		$pageDisplay = $this->displayWrapper('div', 'section', 'section_inner' . $this->extraCSS, $itemsPage);
+		$this->pageOutput .= $pageDisplay;
+		echo $this->pageOutput; 
 	}
 
 	function displayPageOmniBox () {
 		$omniBox = $this->displayOmniBox($this->classes);
-		$this->displayWrapper('div', 'section', 'section_inner splash-page', $omniBox);
+		$this->pageOutput .= $this->displayWrapper('div', 'section', 'section_inner page', $omniBox);
+		echo $this->pageOutput;
 	}
 		
 	function handlePageItems() {
+		if($this->addOns) {
+			foreach($this->addOns as $addOn) {
+				if(isset($addOn['page-banner-display'])){
+					$addonClass = new $addOn['page-banner-display']($this);
+					$addonClass->updateOutputHTML($this);
+				}
+			}
+		}
 
 		if($this->addOns) {
 			foreach($this->addOns as $addOn) {
@@ -168,17 +205,16 @@ class pageManager extends Document {
 				$page = "<div class=\"item-section\">"
 		       	    . $this->displayItemBlog()
 					. "</div>";
+				if($this->meta['owner'] == true) {
+					$omniBox = $this->displayOmniBox();
+					$page = $omniBox . $page;
+				}					
 		} else {
 				$page = "<div class=\"item-section\">"
-					//. $this->displayItemGrid(3)
 					. $this->displayItemBlog()
 					. "</div>";
-		} return $page;
-	}
-
-	function displayWrapper ($tag, $class, $class_inner, $items) {
-		 $wrap = "<$tag class='$class'><$tag class='$class_inner'>$items</$tag><div class='clear'></div></$tag>";
-		 echo $wrap;
+		}
+		return $page;
 	}
 
 	function displayItem() {
@@ -214,12 +250,10 @@ class pageManager extends Document {
 
 		$grid = NULL;
 		foreach($col_holder as $col_group) {
-			$grid .= "<div style='float: left; width: 400px;'>";
 			foreach($col_group as $column) {
 				$grid.= $column;
 			}
-			$grid .= "</div>";
-		} return $grid;
+		} return "<div id='photos'>" . $grid . "</div>";
 		
 	}	
 
@@ -235,26 +269,6 @@ class pageManager extends Document {
 		}
 		return $item_html;
 		
-	}
-	
-	function profileBanner($profile) {
-		$date = new DateService($profile['date']);
-		$user_banner_html = (isset($profile['user_img'])) ? " background-image: url(" . $this->ROOTweb . $profile['user_img'] . ")" : ""; 
-		 
-		$n = "\n";
-		$banner_html = "<a href=\"./?user=" . $profile['user_id'] . "\">$n"
-			. "<div style=\"width: 100%; background-color: #111;\">$n"
-			. "<span class=\"item-user\" style=\"padding: 50px; margin: 20px;"
-			. $user_banner_html
-			. "\"></span>$n"
-			. "<div style=\"position: relative; text-align: left; top: 20px;\">$n"
-			. "<div style=\"font-size: 2em\">" . $profile['user_name'] . "</div>" 
-			. "<div class=\"bubble\" style=\"border-radius: 20px; background-color: #222; color: #666; display: inline-block; padding: 8px; font-size: 8px; text-align: center;\">MEMBER SINCE<br />" . $date->date_time . "</div></div>$n"
-			. "<div class=\"clear\"></div>$n"
-			. "</div>$n"
-			. "</a>$n";
-			
-		return $banner_html;
 	}
 
 	function displayOmniBox() {
@@ -312,7 +326,8 @@ class pageManager extends Document {
 				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id, $info_limit);
 				break;
 		}
-		
+		$itemDisplay->output = $itemDisplay->displayHTML();
+								
 		if($this->addOns) {
 			foreach($this->addOns as $addOn) {
 				if(isset($addOn['item-display'])) {
@@ -321,14 +336,14 @@ class pageManager extends Document {
 				}
 			}
 		}
-		
-		$itemDisplay->output = $itemDisplay->displayHTML($info_limit);
+
 		return $itemDisplay->output;
 	}
 
 	function displayJoinForm () {
 		$joinForm = $this->joinForm();
-		$this->displayWrapper('div', 'section', 'section_inner splash-page', $joinForm);
+		$this->pageOutput = $this->displayWrapper('div', 'section', 'section_inner', $joinForm);
+		echo $this->pageOutput;
 	}
 }
 	
@@ -407,7 +422,7 @@ class ItemDisplay {
 		}
 	}	
 	
-	function displayHTML($info_limit) {
+	function displayHTML() {
 		$item_html = "<div onmouseover=\"dom('userTools" . $this->item_id . "').style.display='block';\" onmouseout=\"dom('userTools" . $this->item_id . "').style.display='none';\" class=\"" . $this->box_class . "\">";
 		$item_html .= "<div style='position: relative;'><div id='userTools" . $this->item_id . "' style='position: absolute; right: 4px; top: 4px; display: none'>" . $this->userTools . "</div></div>";
 		$item_html .= "<div class='item-nodes'>";
@@ -454,12 +469,14 @@ class ItemDisplay {
 	}
 	
 	function audioOverride () {
-		$file_display = '<audio style="width: 100%" controls><source src="' . $this->file . '" type="audio/mpeg">Download to play audio.</audio>';
+		$file_display = '<audio style="width: 100%" controls><source src="' 
+			. $this->file . '" type="audio/mpeg">Download to play audio.</audio>';
 		return $file_display;
 	}
 	
 	function videoOverride () {
-		$file_display =  '<video width="100%" controls><source src="' . $this->file . '" type="audio/mpeg">Download to play video.</video>';
+		$file_display =  '<video width="100%" controls><source src="' 
+			. $this->file . '" type="audio/mpeg">Download to play video.</video>';
 		return $file_display;
 	} 				
 }
