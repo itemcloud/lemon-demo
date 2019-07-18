@@ -7,8 +7,15 @@ $yt_video_links_addon['item-display'] = 'youtubeVideoLinks';
 $addOns[] = $yt_video_links_addon;
 
 class youtubeVideoLinks {
-	function updateOutputHTML ($item) {
-		if(strpos($item->file, 'youtube.com') && $this->getYoutubeIdFromUrl($item->file)) { 
+	function updateOutputHTML ($item) {		
+		//only update raw info to be safe
+		//include new youtubeVideoLinks().updateOutputHTML($item) to use with another add-on
+
+		$raw_input = ($item->fileOutput == $item->linkOverride()) ? $item->file : NULL;
+		
+		//check for youtube links (rough development version) yikes!
+		if($raw_input && strpos($item->file, 'youtube.com') && $this->getYoutubeIdFromUrl($item->file)) { 
+
 			$youtube_ID = $this->getYoutubeIdFromUrl($item->file); 
 			$ytFrame = '<iframe width="100%" height="446" src="https://www.youtube.com/embed/' . $youtube_ID . '" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
 			$item->fileOutput = $ytFrame;
