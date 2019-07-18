@@ -282,7 +282,7 @@ class pageManager extends Document {
 		$class_id = (isset($_POST['itc_class_id'])) ? $_POST['itc_class_id'] : key($classes);
 		
 		$javascript_omni_box = "<script>var OmniController = new OmniBox(" . $class_js_array . ", 'itemOmniBox');\n OmniController.toggle('" . $class_id . "');\n</script>";
-		$message = ($this->meta['message']) ? "<center><div class=\"alertbox-show\">" . $this->meta['message'] . "</div></center>" : "";
+		$message = (isset($this->meta['message'])) ? "<center><div class=\"alertbox-show\">" . $this->meta['message'] . "</div></center>" : "";
 		
 		$createForm  = "<div class=\"item-section\"><div class=\"item-page\" id=\"itemOmniBox\">" . "</div></div>";
 		$createForm .= $javascript_omni_box;
