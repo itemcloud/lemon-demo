@@ -93,7 +93,12 @@ class Document {
 	function joinForm () {
 		 $joinForm = "<div id=\"joinForm\"></div>"
 		       	   . "<script>joinForm('joinForm');</script>";
-		 return $joinForm;
+		       	   
+		       	   
+		 $phpJoinForm = "<div id=\"joinForm\"></div>"
+		 
+		       	   . "<script>joinForm('joinForm');</script>";
+		 return $phpJoinForm;
 	}
 }
 
@@ -119,7 +124,7 @@ class documentBanner {
 		$user_links = '<div class="user_links">';
 		if($this->auth) {
 			  $user_links .= '+ <a href="add.php">Add</a>' . ' &nbsp;'
-			  	      . '<a onclick="logout()"><u>Sign Out</u></a>';
+			  	      . '<a onclick="logout()"><u>Sign Out</u></a><form id="logoutForm" action="./?connect=1&logout=1" method="post"><input name="logout" type="hidden"/></form>';
 		}
 		else { $user_links .=  '<a href="./?connect=1">Sign In</a>'; }
 		$user_links .= '</div>';		
@@ -277,7 +282,7 @@ class pageManager extends Document {
 		$class_id = (isset($_POST['itc_class_id'])) ? $_POST['itc_class_id'] : key($classes);
 		
 		$javascript_omni_box = "<script>var OmniController = new OmniBox(" . $class_js_array . ", 'itemOmniBox');\n OmniController.toggle('" . $class_id . "');\n</script>";
-		$message = (isset($this->meta['message'])) ? "<center><div class=\"alertbox-show\">" . $this->meta['message'] . "</div></center>" : "";
+		$message = ($this->meta['message']) ? "<center><div class=\"alertbox-show\">" . $this->meta['message'] . "</div></center>" : "";
 		
 		$createForm  = "<div class=\"item-section\"><div class=\"item-page\" id=\"itemOmniBox\">" . "</div></div>";
 		$createForm .= $javascript_omni_box;
@@ -333,6 +338,7 @@ class pageManager extends Document {
 				if(isset($addOn['item-display'])) {
 					$addonClass = new $addOn['item-display']();
 					$itemDisplay->updateAddOns($addonClass);
+					$itemDisplay->output = $itemDisplay->displayHTML();
 				}
 			}
 		}
@@ -342,7 +348,16 @@ class pageManager extends Document {
 
 	function displayJoinForm () {
 		$joinForm = $this->joinForm();
-		$this->pageOutput = $this->displayWrapper('div', 'section', 'section_inner', $joinForm);
+		
+		global $message;
+		if($message) { $this->meta['message'] = $message; }	
+		
+		$message = ($this->meta['message']) ? "<center><div id=\"alertbox\" class=\"alertbox-show\">" . $this->meta['message'] . "</div></center>" : "<center><div id=\"alertbox\" class=\"alertbox-hide\"></div></center>";
+		$messageBlock =  "<div class=\"item-section\">"
+			. $message
+			. "</div>";
+		
+		$this->pageOutput = $this->displayWrapper('div', 'section', 'section_inner page', $messageBlock . $joinForm);
 		echo $this->pageOutput;
 	}
 }
@@ -366,13 +381,15 @@ class ItemDisplay {
 		$this->webroot = $webroot;		
 		$this->item_user_img = (isset($item['profile']['user_img'])) ? $item['profile']['user_img'] : "";
 		$this->dateService = new DateService($item['date']);
-		
+
 		$this->title = $item['title'];
 		$this->info = $item['info'];
 		$this->file = $item['file'];
+		
+		$this->info_limit = $info_limit;
 
 		$this->titleOutput = $this->titleDisplayHTML();
-		$this->infoOutput = $this->infoDisplayHTML($info_limit);
+		$this->infoOutput = $this->infoDisplayHTML();
 		$this->fileOutput = $this->fileDisplayHTML();
 		$this->metaOutput = $this->itemMetaLinks();
 		$this->userTools = $this->itemUserTools();
@@ -389,7 +406,8 @@ class ItemDisplay {
 		return $title_html;
 	}
 	
-	function infoDisplayHTML ($limit) {
+	function infoDisplayHTML () {
+		$limit = $this->info_limit;
 		$extra = "<div class=\"item-tools_grey\" onClick=\"window.location='./?id=" . $this->item_id . "'\" title=\"Show more\">...</div>";
 		$info_string = ($limit) ? chopString($this->info, $limit,  $extra) : $this->info;
 		$info_html = '<div class="item-info">' . nl2br($info_string) . '</div>';
@@ -417,13 +435,13 @@ class ItemDisplay {
 		if($this->owner) { 
 			return "<form id=\"itemForm" . $this->item_id . "\" action=\"index.php?user=" . $this->item_user_id . "\" method=\"post\">"
 			. "<input type=\"hidden\" name=\"delete\" value=\"" . $this->item_id ."\"/>"
-			. "<div style=\"float: left;\" class=\"item-tools_grey\" onclick=\"dom('itemForm" . $this->item_id . "').submit()\">delete</div>"
+			. "<div style=\"float: left;\" class=\"item-tools_grey\" onclick=\"domId('itemForm" . $this->item_id . "').submit()\">delete</div>"
 			. "</form>"; 
 		}
 	}	
 	
 	function displayHTML() {
-		$item_html = "<div onmouseover=\"dom('userTools" . $this->item_id . "').style.display='block';\" onmouseout=\"dom('userTools" . $this->item_id . "').style.display='none';\" class=\"" . $this->box_class . "\">";
+		$item_html = "<div onmouseover=\"domId('userTools" . $this->item_id . "').style.display='block';\" onmouseout=\"domId('userTools" . $this->item_id . "').style.display='none';\" class=\"" . $this->box_class . "\">";
 		$item_html .= "<div style='position: relative;'><div id='userTools" . $this->item_id . "' style='position: absolute; right: 4px; top: 4px; display: none'>" . $this->userTools . "</div></div>";
 		$item_html .= "<div class='item-nodes'>";
 		if($this->title) { $item_html .= $this->titleOutput; }
@@ -464,19 +482,19 @@ class ItemDisplay {
 	
 	function photoOverride () {
 		$onlick = "onclick=\"window.location='./?id=" . $this->item_id . "';\"";
-		$file_display = "<div $onlick class=\"item-link\"><div class=\"image-cell\"><img src=\"" . $this->file . "\" width=\"100%\"></div></div>";
+		$file_display = "<div $onlick class=\"item-link\"><div class=\"image-cell\"><img src=\"" . $this->webroot . $this->file . "\" width=\"100%\"></div></div>";
 		return $file_display;
 	}
 	
 	function audioOverride () {
 		$file_display = '<audio style="width: 100%" controls><source src="' 
-			. $this->file . '" type="audio/mpeg">Download to play audio.</audio>';
+			. $this->webroot .  $this->file . '" type="audio/mpeg">Download to play audio.</audio>';
 		return $file_display;
 	}
 	
 	function videoOverride () {
 		$file_display =  '<video width="100%" controls><source src="' 
-			. $this->file . '" type="audio/mpeg">Download to play video.</video>';
+			. $this->webroot . $this->file . '" type="audio/mpeg">Download to play video.</video>';
 		return $file_display;
 	} 				
 }

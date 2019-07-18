@@ -35,6 +35,7 @@ class Client extends Core {
 	}
 		
 	function authorizeUser () {
+
 		$this->auth = false;
 		$this->owner = false;
 			
@@ -43,13 +44,31 @@ class Client extends Core {
 		$uid = $this->usercookie;
 		
 		if (isset($_COOKIE[$uid])) {
-			$this->auth = true;
+			if (isset($_GET['logout'])) {
+				$this->logoutUser();
+				//Redirect user back to home
+				header("Location: ./");
+			}
 			
+			$this->auth = true;
 			///-- serial --///
 			$this->user_serial = $_COOKIE[$uid];
-
 			///-- getUser() --///
 			$user = $this->getUser($_COOKIE[$uid]);
+		} else {
+			
+			//new account request
+			if (isset($_REQUEST['REG_new']) && isset($_REQUEST['e']) && isset($_REQUEST['p'])) {
+				$user_match = $this->registerUser($_REQUEST['e'], isset($_REQUEST['p']));
+			} else if(isset($_REQUEST['e']) && isset($_REQUEST['p'])) {
+				$user_match = $this->signIn($_REQUEST['e'], $_REQUEST['p']);
+			}
+			
+			if(isset($user_match)) {
+				$this->auth = true;	
+				$this->user_serial = $user_match['user_id'];				
+				$user = $this->getUser($user_match['user_id']);
+			}
 		} return $this->auth;
 	}
 
@@ -78,7 +97,7 @@ class Client extends Core {
 	  	if(!$stream){ return false; }
 
 		$user_auth = "SELECT * FROM user"
-			. " WHERE email='$e' AND password='" . md5($p) . "'";
+			. " WHERE email='" . strtolower($e) . "' AND password='" . md5($p) . "'";
 			
 		$query = $stream->query($user_auth);
 		$user = $query->fetch_assoc();
@@ -88,21 +107,23 @@ class Client extends Core {
 			$uid = $this->usercookie;
 			
 			setcookie($uid, $user_serial, time()+(36000*24), '/', '');
-		} else {
-			echo "FAIL";
+			return $user;			
 		}
 	}
 
 	function registerUser($e, $p) {
 		$stream = $this->stream;
 
-		$user_auth = "SELECT * FROM user WHERE email='$e'";
+		$user_auth = "SELECT * FROM user WHERE email=" . strtolower($e);
 		$user = $stream->query($user_auth);
 
 		if($user->fetch_assoc()) {
-			echo "ACTIVE";
+			global $message;
+			$message = "Email is already in use.";
+			$message = "There is already an account.";
 		} else {
-			$user_insert = "INSERT INTO user (email, password, date) VALUES('" . $e . "', '" . md5($p) . "', '" . date('Y-m-d h:i:s') . "')";
+			$date = date('Y-m-d h:i:s');
+			$user_insert = "INSERT INTO user (email, password, date) VALUES('" . $e . "', '" . md5($p) . "', '" . $date . "')";
 
 			$insert_query = mysqli_query($stream, $user_insert);
 			$user_serial = mysqli_insert_id($stream);
@@ -112,9 +133,27 @@ class Client extends Core {
 				mysqli_query($stream, $profile_insert);
 				
 				setcookie('ICC:UID', $user_serial, time()+(36000*24), '/', '');
-			} else { echo "FAIL"; }
+				
+				$new_user = [
+					'user_id' => $user_serial,
+					'email' => $e,
+					'password' => md5($p),
+					'date' => $date
+				];
+				return $new_user;
+			}
 		}
 	}
+	
+	function logoutUser () {
+		setcookie('ICC:UID', '', time()-3600, '/', '');
+		setcookie('ICC:ID', '', time()-3600, '/', '');
+		
+		unset($_COOKIE['ICC:UID']);
+		unset($_COOKIE['ICC:ID']);
+
+	}
+
 	function itemManager() {
 		return new itemManager($this->stream);
 	}
@@ -357,11 +396,14 @@ class itemManager {
 		}			
 		return $type_loot_array;
 	}
-
+	
 	function handleItemUpload($client) {
 		 if (isset($_POST['itc_class_id'])) {
+			global $_ROOTdir;
+			
+			$folder = "files/";
 			$insertOk = "1";
-			$target_dir = "files/";
+			$target_dir = $_ROOTdir . $folder;
 			$filesize = 10485760; //10MB
 			
 			$posted_class = $_POST['itc_class_id'];			
@@ -397,7 +439,7 @@ class itemManager {
 
 				$tmp_file->handleUploadRequest();
 				$tmp_file->uploadFile();
-				$file = $tmp_file->target_file;	
+				$file = $folder . $tmp_file->target_file_name;	
 				if($tmp_file->uploadOk == "0") {
 					$insertOk = "0";
 				} $message = $tmp_file->errorStatus;
@@ -427,9 +469,10 @@ class itemManager {
 class uploadManager {
 
 	function __construct($FILE, $target_dir, $filesize, $filetypes) {
-		
+		$rand = mt_rand(99, 999);
 		$this->tmp_file = $FILE;
-		$this->target_file = $target_dir . mt_rand(99, 999) . "_" . basename($FILE["name"]);
+		$this->target_file = $target_dir . $rand . "_" . basename($FILE["name"]);
+		$this->target_file_name =  $rand . "_" . basename($FILE["name"]);
 		$this->filesize_limit = $filesize;
 		$this->filetypes = $filetypes;
 		$this->uploadOk = 1;
@@ -473,10 +516,86 @@ class uploadManager {
 		}
 	}
 	
+	function formatImage() {
+		$filePath = $this->tmp_file['tmp_name'];
+		$exif = exif_read_data($filePath);
+	
+		if($this->imageFileType == 'jpeg' || $this->imageFileType == 'jpg') {
+			$imageResource = imagecreatefromjpeg($filePath);
+		} else if ($this->imageFileType == 'png') {
+			$imageResource = imagecreatefrompng($filePath);
+		} else if ($this->imageFileType == 'gif') {
+			$imageResource = imagecreatefromgif($filePath);
+		}
+		
+		$tmp_image = $imageResource;
+		//rotate the image (if needed)
+		$tmp_image = $this->rotateImage($tmp_image, $exif);
+		//resize the image
+		$tmp_image = $this->resizeImage($tmp_image, 1000, 1000);
+				
+		if($this->imageFileType == 'jpeg' || $this->imageFileType == 'jpg') {		
+			$move_upload = imagejpeg($tmp_image, $this->target_file);
+		} else if ($this->imageFileType == 'png') {
+			$move_upload = imagepng($tmp_image, $this->target_file);
+		} else if ($this->imageFileType == 'gif') {
+			$move_upload = imagegif($tmp_image, $this->target_file);
+		}
+			
+		imagedestroy($imageResource);
+		imagedestroy($tmp_image);
+		return $move_upload;
+	}
+	
+	function rotateImage ($tmp_image, $exif) {
+		if (!empty($exif['Orientation'])) {	
+			switch ($exif['Orientation']) {
+				case 3:
+				$tmp_image = imagerotate($tmp_image, 180, 0);
+				break;
+				case 6:
+				$tmp_image = imagerotate($tmp_image, -90, 0);
+				break;
+				case 8:
+				$tmp_image = imagerotate($tmp_image, 90, 0);
+				break;
+				default:
+				$tmp_image;
+			} 
+		} return $tmp_image;
+	}
+	
+	function resizeImage ($tmp_image, $max_width, $max_height) {
+		
+		$width = imagesx($tmp_image);
+		$height = imagesy($tmp_image);
+
+		# taller
+		if ($height > $max_height) {
+			//Do not make width smaller than max_width
+			//(even if height is problematically long?)
+			if($max_width <= (($max_height / $height) * $width)) {
+				$width = ($max_height / $height) * $width;
+				$height = $max_height;
+			}
+		}
+
+		# wider
+		if ($width > $max_width) {
+			$height = ($max_width / $width) * $height;
+			$width = $max_width;
+		}		
+		
+		return imagescale ($tmp_image , $width);
+	}
+	
 	function uploadFile () {
 		if($this->uploadOk) {
-			if (move_uploaded_file($this->tmp_file["tmp_name"], $this->target_file)) {
-				$this->errorStatus = "Uploaded";
+			if($this->formatImage()) {
+				$this->errorStatus = "Image uploaded and resized.";
+				$this->uploadOk = 1;
+			} else if (move_uploaded_file($this->tmp_file['tmp_name'], $this->target_file)) {
+				$this->errorStatus = "Full size image uploaded";
 				$this->uploadOk = 1;
 			} else {
 				$this->errorStatus = "Sorry, something went wrong.";
