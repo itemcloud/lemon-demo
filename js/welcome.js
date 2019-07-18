@@ -4,55 +4,22 @@ function sendLoginForm (go) {
 	var pass  = document.getElementById('LOGIN_pass').value;
 
 	if(!isValidEmail(email) || !isValidPassword(pass)){
-		alert('#@$%&?! Please provide a valid email address.');
+		showAlertBox('#@$%&?! Please provide a valid email address.');
 		return false;
 	}
-	
-	var callback = function (x) {
-		if(x.responseText == 'FAIL') {
-			alert('There is not an account for this email and passcode.');
-			return false;
-		}
-		window.location = go;	
-	}
-	
-	var XObj;
-	try { XObj = new XMLHttpRequest(); }
-	catch(e) { XObj = new ActiveXObject(Microsoft.XMLHTTP); }
-	
-	XObj.onreadystatechange = function () {
-		if(XObj.readyState == 4) {
-		    if(callback) {
-				callback(XObj);
-			}
-		}
-	}
+	domId('sendForm').submit();
+}
 
-	XObj.open('POST','./php/db/login.php?e=' + email + '&p=' + pass + '&t=' + md5_stamp, true);
-	XObj.send(null);
+function showAlertBox(message) {
+	if(domId('alertbox')) {
+		domId('alertbox').innerHTML = message;
+		domId('alertbox').className = "alertbox-show";
+	}
 }
 
 //Config::Logout
 function logout () {
-	
-	var callback = function (x) {
-            window.location = "./";
-	}
-	
-	var XObj;
-	try { XObj = new XMLHttpRequest(); }
-	catch(e) { XObj = new ActiveXObject(Microsoft.XMLHTTP); }
-	
-	XObj.onreadystatechange = function () {
-		if(XObj.readyState == 4) {
-			if(callback) {
-				callback(XObj);
-			}
-		}
-	}
-			
-	XObj.open('POST','./php/db/logout.php?t=' + md5_stamp, true);
-	XObj.send(null);
+	domId('logoutForm').submit();
 }
 
 //Config::Register
@@ -63,63 +30,36 @@ function sendForm (div) {
 	var agree = document.getElementById('REG_agree').checked;
 
 	//if(hasWhiteSpace(username) || hasSpecialChars(username)){
-		//alert('#@$%&?! Username can not contain spaces or special characters.');
+		//showAlertBox('#@$%&?! Username can not contain spaces or special characters.');
 		//return false;
 	//}
 	
 	if(!isValidEmail(email)) {
-		alert('Enter a valid email to continue: me@email.com');
+		showAlertBox('Enter a valid email to continue: me@email.com');
 		return false;
 	}
 	
 	if(!isValidPassword(pass)) {
-		alert('Passcode must contain 6-20 characters.');
+		showAlertBox('Passcode must contain 6-20 characters.');
 		return false;
 	}
 	
 	if(pass != cpass) {
-		alert('Your passcode confirmation does not match.');
+		showAlertBox('Your passcode confirmation does not match.');
 		return false;
 	}
 	
 	if(cpass != pass || !email || !pass || !cpass) {
-		alert('You must enter a username, valid email and create a new passcode.');
+		showAlertBox('You must enter a username, valid email and create a new passcode.');
 		return false;
 	}
 	
 	if(!agree) {
-		alert('You must agree to the terms of service.');
+		showAlertBox('You must agree to the terms of service.');
 		return false;	
 	}
 
-	var callback = function (x) {
-		if(x.responseText == 'ACTIVE') {
-			alert('There is already an account for this email. If you forgot your passcode send an email to editors@bigups.tv and we will create one for you.');
-			return false;
-		}
-		
-		if(x.responseText == 'FAIL') {
-			alert('Wha gwan!? Something went wrong.');
-			return false;
-		}
-	    
-		window.location = "./";		
-	}
-	
-	var XObj;
-	try { XObj = new XMLHttpRequest(); }
-	catch(e) { XObj = new ActiveXObject(Microsoft.XMLHTTP); }
-	
-	XObj.onreadystatechange = function () {
-		if(XObj.readyState == 4) {
-			if(callback) {
-				callback(XObj);
-			}
-		}		
-	}		
-
-	XObj.open('POST','./php/db/reg.php?e=' + email + '&p=' + pass + '&t=' + md5_stamp, true);
-	XObj.send(null);
+	domId('joinForm2').submit();
 }
 
 //DISPLAY:Register
@@ -132,9 +72,9 @@ function joinForm (div) {
     var login_form = "<div style='float: left; width: 540px;'>";
     login_form += "<div style='text-align: left; color: #999; margin: 70px 70px'>";
 	
-    login_form += "<div style='font-size: 32px; margin-bottom: 20px; width: 100%'>SIGN IN</div>";
-    login_form += "<form><div>Email</div><div><input id='LOGIN_email' class='form' value=''/></div>";
-    login_form += "<div>Passcode</div><div><input id='LOGIN_pass' type='password' class='form' value=''/></div>";
+    login_form += "<div style='font-size: 32px; margin-bottom: 20px; width: 100%'>Sign In</div>";
+    login_form += "<form id=\"sendForm\" action=\"./index.php?connect=1\" method=\"post\"><div>Email</div><div><input id='LOGIN_email' name='e' class='form' value=''/></div>";
+    login_form += "<div>Passcode</div><div><input id='LOGIN_pass' name='p' type='password' class='form' value=''/></div>";
 	login_form += "<div><a>Forgot passcode?</a></div>";
 	login_form += "<div><input class='form_button' type=\"button\" onClick=\"sendLoginForm('./')\" value=\"CONNECT\"/></div></form>";
 	login_form += "<div style='width: 80px; text-align: center; color: #DCDCDC; font-size: 10px; margin: 0 auto; padding-top: 20px'></div><div class='arrow-down' style='margin: 0 auto'></div>";
@@ -144,11 +84,14 @@ function joinForm (div) {
 	
 	var join_form = "<div style='float: left; width: 540px;'>";
 	join_form += "<div style='text-align: left; color: #999; margin: 70px 70px;'>";
-	
-	join_form += "<div style='font-size: 32px; margin-bottom: 20px; width: 100%'>Create a Test Account</div><small>Test Accounts may be subject to deletion at any time. Our project is in active development. Any items created using the test service will not be available to export.</small><br /><br />";
-	join_form += "<div>Email</div><div><input id='REG_email' class='form' value='" + email + "'/></div>";
-	join_form += "<div>Passcode</div><div><input id='REG_pass' type='password' class='form' value=''/></div>";
+
+	join_form += "<div style='font-size: 32px; margin-bottom: 20px; width: 100%'>Create an Account</div><small>Get connected with the collective! Start learning from fellow artists and sharing with the community. All members can post notes, links, files, photos, audio. Your account will help you keep track of all your favorite things.</small><br /><br />";
+	join_form += "<form id=\"joinForm2\" action=\"./index.php?connect=1\" method=\"post\"><div>Email</div><div><input id='REG_email' name='e' class='form' value='" + email + "'/></div>";
+	join_form += "<div>Passcode</div><div><input id='REG_pass' name='p' type='password' class='form' value=''/></div>";
 	join_form += "<div>Confirm Passcode</div><div><input id='REG_cpass' type='password' class='form' value=''/></div>";
+	join_form += "<input name='REG_new' type='hidden' value='1'/></div>";
+
+
 
 	join_form += "<div style='font-size: 12px'><input id=\"REG_agree\" type=\"checkbox\" style=\"vertical-align: middle\"/>I agree to the <a onClick=\"alert('SERVICE AGREEMENT. Your account is provided 100% free of charge. "
 	+ " By uploading videos, photos, music and posting in community forums you are declaring that you have ownership or consent to distribute the content. Any copyright violations are solely"
@@ -157,7 +100,7 @@ function joinForm (div) {
 	+ " company that respects your privacy and will never sell your data to third party advertisers. This site uses cookies to provide better services. You may request your account to be closed"
 	+ " at any time. All pertinent files will be removed from both public and private severs.')\">Privacy Policy</a>.</div>";
 
-	join_form += "<div><input class='form_button' type=\"button\" onClick=\"sendForm('" + div + "')\" value=\"CREATE ACCOUNT\"/></div>";
+	join_form += "<div><input class='form_button' type=\"button\" onClick=\"sendForm('" + div + "')\" value=\"CREATE ACCOUNT\"/></div></form>";
 	
 	join_form += "</div>";
 	join_form += "</div>";

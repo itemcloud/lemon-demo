@@ -10,7 +10,7 @@ class OmniBox {
 	
 	toggle = function (class_id) {
 		this.active_class = class_id;
-		dom(this.parent_div).innerHTML = this.class_form_HTML(this.class_array[class_id]);
+		domId(this.parent_div).innerHTML = this.class_form_HTML(this.class_array[class_id]);
 	}
 	
 	class_form_HTML = function (class_form) {
@@ -37,10 +37,10 @@ class OmniBox {
 					var domid_add = "itc_add_" + node['node_name'] + "_" + class_form['class_id'];
 
 					var show = "this.style.display='none';"
-						  + "dom('" + domid + "').style.display = 'block'";
-					var hide = "dom('" + domid_add + "').style.display = 'block';"
-						  + "dom('" + domid + "').style.display = 'none';"
-						  + "dom('" + domid + "_txt').value = '';";
+						  + "domId('" + domid + "').style.display = 'block'";
+					var hide = "domId('" + domid_add + "').style.display = 'block';"
+						  + "domId('" + domid + "').style.display = 'none';"
+						  + "domId('" + domid + "_txt').value = '';";
 					
 					form_input += "<div id=\"" + domid_add + "\" onclick=\"" + show + "\"><a>+ <u>Add " + node['node_name'] + "</u></a></div>";
 					form_input += "<div id=\"" + domid + "\" style=\"display: none\"><textarea id=\"" + domid + "_txt\" class=\"form wider\" name=\"itc_" + node['node_name'] + "\" onkeyup=\"auto_expand(this)\" maxlength=\"" + node['length']  + "\" style=\"vertical-align: bottom\"></textarea> <span onClick=\"" + hide + "\" class=\"item-tools\">x</span></div>";
@@ -103,7 +103,7 @@ function auto_expand(element) {
     element.style.height = (element.scrollHeight - 8)+"px";
 }
 
-function dom(id) {
+function domId(id) {
 	return document.getElementById(id);
 }
 

@@ -1,4 +1,6 @@
 <?PHP
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 /*
 **  _ _                      _                 _
 ** (_) |_ ___ _ __ ___   ___| | ___  _   _  __| |
@@ -20,13 +22,13 @@
 ** @copyright  Copyright (c) 2019 ITEMCLOUD (http://www.itemcloud.org)
 ** @license    http://www.gnu.org/licenses/gpl.html Open Source GPL 3.0 license
 */
-$_ROOTdir = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF']);
+$_ROOTdir = $_SERVER['DOCUMENT_ROOT'].dirname($_SERVER['PHP_SELF'])."/";
 $_ROOTweb = "http://".$_SERVER['HTTP_HOST'].dirname($_SERVER['PHP_SELF'])."/";
 
-include($_ROOTdir .'/php/db' . '/config.php'); //DATABASE: Configuration
-require_once($_ROOTdir .'/php/db' . '/core.php'); //DATABASE: Core MySQL Connection, DateService
-require_once($_ROOTdir .'/php/db' . '/client.php'); //DATABASE: Client extends Core, itemManager, uploadManager
-require_once($_ROOTdir .'/php/db' . '/display.php'); //DISPLAY: PageManager extends Document, itemDisplay
+include($_ROOTdir .'php/db' . '/config.php'); //DATABASE: Configuration
+require_once($_ROOTdir .'php/db' . '/core.php'); //DATABASE: Core MySQL Connection, DateService
+require_once($_ROOTdir .'php/db' . '/client.php'); //DATABASE: Client extends Core, itemManager, uploadManager
+require_once($_ROOTdir .'php/db' . '/display.php'); //DISPLAY: PageManager extends Document, itemDisplay
 
 //ADDONS
 foreach (glob($_ROOTdir . "/php/addons/*.php") as $filename){
