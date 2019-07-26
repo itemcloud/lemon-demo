@@ -1,5 +1,5 @@
 //Client::Login
-function sendLoginForm (go) {
+var sendLoginForm = function (go) {
 	var email = document.getElementById('LOGIN_email').value;
 	var pass  = document.getElementById('LOGIN_pass').value;
 
@@ -9,6 +9,7 @@ function sendLoginForm (go) {
 	}
 	domId('sendForm').submit();
 }
+
 
 function showAlertBox(message) {
 	if(domId('alertbox')) {
@@ -59,7 +60,7 @@ function sendForm (div) {
 		return false;	
 	}
 
-	domId('joinForm2').submit();
+	domId('joinForm').submit();
 }
 
 //DISPLAY:Register
@@ -86,7 +87,7 @@ function joinForm (div) {
 	join_form += "<div style='text-align: left; color: #999; margin: 70px 70px;'>";
 
 	join_form += "<div style='font-size: 32px; margin-bottom: 20px; width: 100%'>Create an Account</div><small>Get connected with the collective! Start learning from fellow artists and sharing with the community. All members can post notes, links, files, photos, audio. Your account will help you keep track of all your favorite things.</small><br /><br />";
-	join_form += "<form id=\"joinForm2\" action=\"./index.php?connect=1\" method=\"post\"><div>Email</div><div><input id='REG_email' name='e' class='form' value='" + email + "'/></div>";
+	join_form += "<form id=\"joinForm\" action=\"./index.php?connect=1\" method=\"post\"><div>Email</div><div><input id='REG_email' name='e' class='form' value='" + email + "'/></div>";
 	join_form += "<div>Passcode</div><div><input id='REG_pass' name='p' type='password' class='form' value=''/></div>";
 	join_form += "<div>Confirm Passcode</div><div><input id='REG_cpass' type='password' class='form' value=''/></div>";
 	join_form += "<input name='REG_new' type='hidden' value='1'/></div>";

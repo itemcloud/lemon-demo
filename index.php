@@ -1,4 +1,9 @@
 <?PHP
+/*DEBUG
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+*/
+
 /*
 **  _ _                      _                 _
 ** (_) |_ ___ _ __ ___   ___| | ___  _   _  __| |

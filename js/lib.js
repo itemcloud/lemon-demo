@@ -1,19 +1,23 @@
 //DOM Constants
 var md5_stamp;
 
-class OmniBox {
+var domId = function (id) {
+	return document.getElementById(id);
+}
+
+var OmniBox = class {
 	constructor(class_array, parent_div) {
 		this.class_array = class_array;
 		this.active_class = Object.keys(class_array)[0];
 		this.parent_div = parent_div;
 	}
 	
-	toggle = function (class_id) {
+	toggle (class_id) {
 		this.active_class = class_id;
-		domId(this.parent_div).innerHTML = this.class_form_HTML(this.class_array[class_id]);
+		document.getElementById(this.parent_div).innerHTML = this.class_form_HTML(this.class_array[class_id]);
 	}
 	
-	class_form_HTML = function (class_form) {
+	class_form_HTML (class_form) {
 		var form_input = "<input type=\"hidden\" name=\"itc_class_id\" value=\"" + class_form['class_id'] + "\"/>";
 		var functions = " action=\"add.php\" method=\"post\"";	
 			
@@ -101,10 +105,6 @@ function popup(url)
 function auto_expand(element) {
     element.style.height = "4px";
     element.style.height = (element.scrollHeight - 8)+"px";
-}
-
-function domId(id) {
-	return document.getElementById(id);
 }
 
 function formatTime(millis) {
