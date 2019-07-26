@@ -50,9 +50,9 @@ $pageManager = new pageManager($itemManager, $_ROOTweb);
 $itemManager->enableAddOns();
 
 $pageManager->displayDocumentHeader([
-	'title' => 'DEFIANT',
-	'scripts' => ['./js/welcome.js',
-				  './js/lib.js'],
+	'title' => 'lemon',
+	'scripts' => ['./js/lib.js',
+				  './js/welcome.js'],
 	'styles' => ['./frame.css',
 				 './addon.css']
 ]);

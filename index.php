@@ -1,6 +1,4 @@
 <?PHP
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 /*
 **  _ _                      _                 _
 ** (_) |_ ___ _ __ ___   ___| | ___  _   _  __| |
@@ -54,9 +52,9 @@ $pageManager = new pageManager($itemManager, $_ROOTweb);
 $pageManager->enableAddOns();
 
 $pageManager->displayDocumentHeader([
-	'title' => 'DEFIANT',
-	'scripts' => ['./js/welcome.js',
-				  './js/lib.js'],
+	'title' => 'lemon',
+	'scripts' => ['./js/lib.js',
+				  './js/welcome.js'],
 	'styles' => ['./frame.css',
 				 './addon.css']
 ]);
