@@ -134,6 +134,16 @@ class Client extends Core {
 					'password' => md5($p),
 					'date' => $date
 				];
+				
+				if($this->addOns) {
+					foreach($this->addOns as $addOn) {
+						if(isset($addOn['user-account'])) {
+							//POST ADDONS
+							$addonClass = new $addOn['user-account']($this->stream);					
+							$new_user = $addonClass->handleAddOnJoin($new_user);
+						}
+					}
+				}
 				return $new_user;
 			}
 		}
