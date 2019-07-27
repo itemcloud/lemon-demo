@@ -56,10 +56,9 @@ class Client extends Core {
 			///-- getUser() --///
 			$user = $this->getUser($_COOKIE[$uid]);
 		} else {
-			
 			//new account request
 			if (isset($_REQUEST['REG_new']) && isset($_REQUEST['e']) && isset($_REQUEST['p'])) {
-				$user_match = $this->registerUser($_REQUEST['e'], isset($_REQUEST['p']));
+				$user_match = $this->registerUser($_REQUEST['e'], $_REQUEST['p']);
 			} else if(isset($_REQUEST['e']) && isset($_REQUEST['p'])) {
 				$user_match = $this->signIn($_REQUEST['e'], $_REQUEST['p']);
 			}
@@ -98,14 +97,12 @@ class Client extends Core {
 
 		$user_auth = "SELECT * FROM user"
 			. " WHERE email='" . strtolower($e) . "' AND password='" . md5($p) . "'";
-			
-		$query = $stream->query($user_auth);
-		$user = $query->fetch_assoc();
-
-		if(isset($user)) {
+		$user = $stream->query($user_auth);
+					
+		if ($user) {
+			$user = $user->fetch_assoc();
 			$user_serial = $user['user_id'];
 			$uid = $this->usercookie;
-			
 			setcookie($uid, $user_serial, time()+(36000*24), '/', '');
 			return $user;			
 		}
@@ -114,29 +111,26 @@ class Client extends Core {
 	function registerUser($e, $p) {
 		$stream = $this->stream;
 
-		$user_auth = "SELECT * FROM user WHERE email=" . strtolower($e);
+		$user_auth = "SELECT * FROM user WHERE email='" . strtolower($e) . "'";
 		$user = $stream->query($user_auth);
-
-		if($user->fetch_assoc()) {
+		
+		if ($user) {
 			global $message;
 			$message = "Email is already in use.";
-			$message = "There is already an account.";
 		} else {
 			$date = date('Y-m-d h:i:s');
-			$user_insert = "INSERT INTO user (email, password, date) VALUES('" . $e . "', '" . md5($p) . "', '" . $date . "')";
+			$user_insert = "INSERT INTO user (email, password, date) VALUES('" . strtolower($e) . "', '" . md5($p) . "', '" . $date . "')";
 
 			$insert_query = mysqli_query($stream, $user_insert);
 			$user_serial = mysqli_insert_id($stream);
 
 			if($user_serial) {
-				$profile_insert = "INSERT INTO user_profile (user_id, level) VALUES('" . $user_serial . "', '3')";
-				mysqli_query($stream, $profile_insert);
-				
-				setcookie('ICC:UID', $user_serial, time()+(36000*24), '/', '');
+				$uid = $this->usercookie;
+				setcookie($uid, $user_serial, time()+(36000*24), '/', '');
 				
 				$new_user = [
 					'user_id' => $user_serial,
-					'email' => $e,
+					'email' => strtolower($e),
 					'password' => md5($p),
 					'date' => $date
 				];
@@ -146,12 +140,9 @@ class Client extends Core {
 	}
 	
 	function logoutUser () {
-		setcookie('ICC:UID', '', time()-3600, '/', '');
-		setcookie('ICC:ID', '', time()-3600, '/', '');
-		
-		unset($_COOKIE['ICC:UID']);
-		unset($_COOKIE['ICC:ID']);
-
+		$uid = $this->usercookie;
+		setcookie($uid, '', time()-3600, '/', '');
+		unset($_COOKIE[$uid]);
 	}
 
 	function itemManager() {
