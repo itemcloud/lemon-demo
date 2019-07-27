@@ -99,7 +99,7 @@ class Client extends Core {
 			. " WHERE email='" . strtolower($e) . "' AND password='" . md5($p) . "'";
 		$user = $stream->query($user_auth);
 					
-		if ($user) {
+		if (mysqli_num_rows($user) > 0) {
 			$user = $user->fetch_assoc();
 			$user_serial = $user['user_id'];
 			$uid = $this->usercookie;
@@ -114,7 +114,7 @@ class Client extends Core {
 		$user_auth = "SELECT * FROM user WHERE email='" . strtolower($e) . "'";
 		$user = $stream->query($user_auth);
 		
-		if ($user) {
+		if (mysqli_num_rows($user) > 0) {
 			global $message;
 			$message = "Email is already in use.";
 		} else {
