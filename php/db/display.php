@@ -91,13 +91,9 @@ class Document {
 	}
 		
 	function joinForm () {
-		 $joinForm = "<div id=\"joinForm\"></div>"
-		       	   . "<script>joinForm('joinForm');</script>";
-		       	   
-		       	   
-		 $phpJoinForm = "<div id=\"joinForm\"></div>"
-		 
-		       	   . "<script>joinForm('joinForm');</script>";
+		 $phpJoinForm = "<div id=\"joinFormBox\"></div>"		 
+		 	      . "<script>joinForm('joinFormBox');</script>";
+			   
 		 return $phpJoinForm;
 	}
 }
