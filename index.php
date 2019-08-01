@@ -59,18 +59,17 @@ $pageManager->enableAddOns();
 $pageManager->displayDocumentHeader([
 	'title' => 'lemon',
 	'scripts' => ['./js/lib.js',
-				  './js/welcome.js'],
-	'styles' => ['./frame.css',
-				 './addon.css']
+		     './js/welcome.js'],
+	'styles' => ['./frame.css']
 ]);
 
 $pageManager->displayPageBanner($client, $auth);
-if (!$auth && !$items) { $pageManager->displayJoinform(); }
+if (!$auth && !isset($_GET['connect'])) { $pageManager->displayJoinform(); }
 else { $pageManager->displayPageItems(); }
 
 $pageManager->displayDocumentFooter([
-	'copyright' => 'Copyright &copy;2019-2020',
-	'copyleft' => 'Powered by <a href="http://www.itemcloud.org">'
+	'copyright' => 'Copyright &copy;' . date("Y"),
+	'copyleft' => 'Powered by <a href="http://www.itemcloud.org" target="_blank">'
 				. '<img src="img/itemcloud-icon.png" class="footer_icon">'
 				. '</a><sup>&trade;</sup>'
 ]);

@@ -63,12 +63,13 @@ $pageManager->displayDocumentHeader([
 ]);
 
 $pageManager->displayPageBanner($client, $auth);
-if (!$auth && !$items){ $pageManager->displayJoinForm(); }
+if (!$auth){ $pageManager->displayJoinForm(); }
 else { $pageManager->displayPageOmniBox(); }
 
 $pageManager->displayDocumentFooter([
-	'copyright' => 'Copyright &copy;2019',
-	'copyleft' => 'Powered by <a href="http://www.itemcloud.org">'
-				. '<img src="img/itemcloud-icon.png" style="width: 140px; vertical-align:middle"/></a><sup>&trade;</sup>'
+	'copyright' => 'Copyright &copy;' . date("Y"),
+	'copyleft' => 'Powered by <a href="http://www.itemcloud.org" target="_blank">'
+				. '<img src="img/itemcloud-icon.png" class="footer_icon">'
+				. '</a><sup>&trade;</sup>'
 ]);
 ?>
