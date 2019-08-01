@@ -12,7 +12,8 @@ class infoLinks {
 		//include new infoLinks().updateOutputHTML($item) to use with another add-on
 		$raw_input = ($item->infoOutput == $item->infoDisplayHTML()) ? $item->info : NULL;
 		
-		if($raw_input) { $item->infoOutput = nl2br($this->replaceUrls($item->info)); }
+		$class_name = "item-info";
+		if($raw_input) { $item->infoOutput = "<div class=\"$class_name\">" . nl2br($this->replaceUrls($item->info)) . "</div>"; }
 	}
 
 	function replaceUrls($inputText) {
