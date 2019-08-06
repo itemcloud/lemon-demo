@@ -221,7 +221,7 @@ class pageManager extends Document {
 	function displayItem() {
 		$box_class = "item-page";
 		if(!isset($this->items)){ return "No items found."; }	
-		$item_html = $this->handleItemType(reset($this->items), $box_class, null);
+		$item_html = $this->handleItemType(reset($this->items), $box_class, null, 0);
 		return $item_html;
 	}
 	
@@ -242,11 +242,13 @@ class pageManager extends Document {
 
 		if(!isset($this->items)){ return "No items found."; }
 		
+		$count = 0;
 		foreach($this->items as $i) {			
 			if($num > $col_max) { $num = $start; }
-			$item_html = $this->handleItemType($i, $box_class, $info_limit);
+			$item_html = $this->handleItemType($i, $box_class, $info_limit, $count);
 			$col_holder[$num][] = $item_html;
 			$num++;
+			$count++;
 		}
 
 		$grid = NULL;
@@ -265,8 +267,10 @@ class pageManager extends Document {
 
 		if(!isset($this->items)){ return "No items found."; }
 
+		$count = 0;
 		foreach($this->items as $item) {
-			$item_html .= $this->handleItemType($item, $box_class, $info_limit);
+			$item_html .= $this->handleItemType($item, $box_class, $info_limit, $count);
+			$count++;
 		}
 		return $item_html;
 		
@@ -298,7 +302,7 @@ class pageManager extends Document {
 		return $item_html;
 	}
 			
-	function handleItemType ($item, $box_class, $info_limit) {
+	function handleItemType ($item, $box_class, $info_limit, $count) {
 		global $client;
 		$user_id = $client->user_serial;
 			
@@ -312,8 +316,10 @@ class pageManager extends Document {
 				$itemDisplay->fileOutput = $itemDisplay->downloadOverride();
 				break;
 			case 4: // item_type: photo
+				$float = " style=\"float: right\"";
+				if($count&1) { $float = " style=\"float: left\""; }
 				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id, $info_limit);
-				$itemDisplay->fileOutput = $itemDisplay->photoOverride();
+				$itemDisplay->fileOutput = $itemDisplay->photoOverride($float);
 				break;
 			case 5: // item_type: audio
 				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id, $info_limit);
@@ -440,13 +446,13 @@ class ItemDisplay {
 		$item_html = "<div onmouseover=\"domId('userTools" . $this->item_id . "').style.display='block';\" onmouseout=\"domId('userTools" . $this->item_id . "').style.display='none';\" class=\"" . $this->box_class . "\">";
 		$item_html .= "<div style='position: relative;'><div id='userTools" . $this->item_id . "' style='position: absolute; right: 4px; top: 4px; display: none'>" . $this->userTools . "</div></div>";
 		$item_html .= "<div class='item-nodes'>";
-		if($this->title) { $item_html .= $this->titleOutput; }
 		if($this->file) { $item_html .= $this->fileOutput; }
-		if($this->info) { $item_html .= $this->infoOutput; }
-		$item_html .= "</div>";
+		if($this->title) { $item_html .= $this->titleOutput; }
 		$item_html .= "<div class='item-meta'>";
 		$item_html .= $this->metaOutput;
 		$item_html .= '<div class="clear"></div>';
+		if($this->info) { $item_html .= $this->infoOutput; }
+		$item_html .= "</div>";
 		$item_html .= "</div>";
 		$item_html .= '</div>';
 		return $item_html;
@@ -476,9 +482,9 @@ class ItemDisplay {
 		return $file_display;
 	}
 	
-	function photoOverride () {
+	function photoOverride ($float) {
 		$onlick = "onclick=\"window.location='./?id=" . $this->item_id . "';\"";
-		$file_display = "<div $onlick class=\"item-link\"><div class=\"image-cell\"><img src=\"" . $this->webroot . $this->file . "\" width=\"100%\"></div></div>";
+		$file_display = "<div $onlick class=\"item-link\"$float><div class=\"image-cell\"><img src=\"" . $this->webroot . $this->file . "\" width=\"100%\"></div></div>";
 		return $file_display;
 	}
 	

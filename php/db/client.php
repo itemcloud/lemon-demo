@@ -101,10 +101,14 @@ class Client extends Core {
 					
 		if (mysqli_num_rows($user) > 0) {
 			$user = $user->fetch_assoc();
+			
 			$user_serial = $user['user_id'];
 			$uid = $this->usercookie;
 			setcookie($uid, $user_serial, time()+(36000*24), '/', '');
 			return $user;			
+		} else {
+			global $message;
+			$message = "Nope. Try another email and passcode.";
 		}
 	}
 

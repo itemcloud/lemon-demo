@@ -64,7 +64,7 @@ $pageManager->displayDocumentHeader([
 ]);
 
 $pageManager->displayPageBanner($client, $auth);
-if (!$auth && !isset($_GET['connect'])) { $pageManager->displayJoinform(); }
+if (!$auth && isset($_GET['connect'])) { $pageManager->displayJoinform(); }
 else { $pageManager->displayPageItems(); }
 
 $pageManager->displayDocumentFooter([
