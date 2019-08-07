@@ -16,10 +16,30 @@ var OmniBox = class {
 		this.active_class = class_id;
 		document.getElementById(this.parent_div).innerHTML = this.class_form_HTML(this.class_array[class_id]);
 	}
+
+    checkInput () {
+	var class_form = this.class_array[this.active_class];
+
+	for (var i = 0; i < class_form.nodes.length; i++) {
+	    var node = class_form.nodes[i];
+	    var value = document.getElementById('itc_' + node['node_name'] + '_txt').value;
+	    
+	    if(node['required'] && !value) {
+		var item_name = node['node_name']; //node['node_name'].charAt(0).toUpperCase() + node['node_name'].slice(1);
+
+		domId('alertbox').innerHTML = "Adding a " + item_name + " is required for new " + class_form['class_name'] + ".";
+	    	domId('alertbox').className = "alertbox-show";
+		return false;
+	    }	    
+	}
+
+	domId('itc_OmniBoxForm').submit();
+    }
 	
 	class_form_HTML (class_form) {
-		var form_input = "<input type=\"hidden\" name=\"itc_class_id\" value=\"" + class_form['class_id'] + "\"/>";
-		var functions = " action=\"add.php\" method=\"post\"";	
+	    var form_input = "<input type=\"hidden\" name=\"itc_class_id\" value=\"" + class_form['class_id'] + "\"/>";
+	    var form_id = " id=\"itc_OmniBoxForm\"";
+	    var functions = " action=\"add.php\" method=\"post\"";	
 			
 		for (var i = 0; i < class_form.nodes.length; i++) {
 			var node = class_form.nodes[i];
@@ -28,7 +48,7 @@ var OmniBox = class {
 				var functions = " action=\"add.php\" method=\"post\" enctype=\"multipart/form-data\"";
 
 				var types = class_form['types'];
-				form_input += "<input type=\"file\" class=\"item-tools\" name=\"itc_" + node['node_name'] + "\" id=\"itc_" + node['node_name'] + "\" accept=\"";
+				form_input += "<input type=\"file\" class=\"item-tools\" name=\"itc_" + node['node_name'] + "\" id=\"itc_" + node['node_name'] + "_txt\" accept=\"";
 
 				//accepted filetypes
 				form_input += types.join();
@@ -37,7 +57,7 @@ var OmniBox = class {
 
 			} else {
 				if(!node['required']) {
-					var domid = "itc_" + node['node_name'] + "_" + class_form['class_id'];
+					var domid = "itc_" + node['node_name'];
 					var domid_add = "itc_add_" + node['node_name'] + "_" + class_form['class_id'];
 
 					var show = "this.style.display='none';"
@@ -50,12 +70,12 @@ var OmniBox = class {
 					form_input += "<div id=\"" + domid + "\" style=\"display: none\"><textarea id=\"" + domid + "_txt\" class=\"form wider\" name=\"itc_" + node['node_name'] + "\" onkeyup=\"auto_expand(this)\" maxlength=\"" + node['length']  + "\" style=\"vertical-align: bottom\"></textarea> <span onClick=\"" + hide + "\" class=\"item-tools\">x</span></div>";
 					form_input += "<hr />";
 				} else {
-					form_input += "<textarea class=\"form wider\" name=\"itc_" + node['node_name'] + "\" onkeyup=\"auto_expand(this)\" maxlength=\"" + node['length'] + "\"></textarea>";
+					form_input += "<textarea class=\"form wider\" id=\"itc_" + node['node_name'] + "_txt\" name=\"itc_" + node['node_name'] + "\" onkeyup=\"auto_expand(this)\" maxlength=\"" + node['length'] + "\"></textarea>";
 					form_input += "<hr />";
 				}
 			}
 			
-			var upload = "<input class=\"item-tools\" type=\"submit\" name=\"submit\" value=\"&#10004 SAVE\"/><br />";			
+		    var upload = "<input class=\"item-tools\" type=\"button\" name=\"checkInput\" onClick=\"OmniController.checkInput()\"  value=\"&#10004 SAVE\"/><br />";
 		}
 
 		var inactive = "_inactive";
@@ -68,7 +88,7 @@ var OmniBox = class {
 			inactive = "_inactive";	
 		}
 		
-		var form_display = "<form" + functions + ">"
+		var form_display = "<form" + form_id + functions + ">"
 			+ form_input
 			+ "<div style='float: right'>" + upload + "</div>"
 			+ toggleItemClass
@@ -85,25 +105,26 @@ class OmniEditBox extends OmniBox {
 	}
 		
  	class_form_HTML (class_form) {
-		var item = JSON.parse(this.item_array);
-		
-		var form_input = "<input type=\"hidden\" name=\"itc_class_id\" value=\"" + class_form['class_id'] + "\"/>";
-			form_input += "<input type=\"hidden\" name=\"itc_edit_item\" value=\"" + item['item_id'] + "\"/>";
-		var functions = " action=\"index.php\" method=\"post\"";
+	    var item = JSON.parse(this.item_array);		
+	    var form_input = "<input type=\"hidden\" name=\"itc_class_id\" value=\"" + class_form['class_id'] + "\"/>";
+	    form_input += "<input type=\"hidden\" name=\"itc_edit_item\" value=\"" + item['item_id'] + "\"/>";
+	    var form_id = " id=\"itc_OmniBoxForm\"";
+	    var functions = " action=\"index.php\" method=\"post\"";
 			
 		for (var i = 0; i < class_form.nodes.length; i++) {
 			var node = class_form.nodes[i];
 			
 			if(class_form['types'].length > 0 && node['node_name'] == "file") {
-				if(item[node['node_name']]) {	
-					form_input += item[node['node_name']];
-					form_input += "<hr />";
+			    if(item[node['node_name']]) {
+				form_input += "<input class=\"item-tools\" name=\"itc_" + node['node_name'] + "\" id=\"itc_" + node['node_name'] + "_txt\" type=\"hidden\" value=\"" + item[node['node_name']] + "\"/>";
+				form_input += item[node['node_name']];
+				form_input += "<hr />";
 				} else { 
 					//NOT USED - Add file while editing
 					var functions = " action=\"index.php\" method=\"post\" enctype=\"multipart/form-data\"";
 
 					var types = class_form['types'];
-					form_input += "<input type=\"file\" class=\"item-tools\" name=\"itc_" + node['node_name'] + "\" id=\"itc_" + node['node_name'] + "\" accept=\"";
+					form_input += "<input type=\"file\" class=\"item-tools\" name=\"itc_" + node['node_name'] + "_txt\" id=\"itc_" + node['node_name'] + "\" accept=\"";
 
 					//accepted filetypes
 					form_input += types.join();
@@ -113,7 +134,7 @@ class OmniEditBox extends OmniBox {
 				
 			} else {
 				if(!node['required'] && !item[node['node_name']]) {
-					var domid = "itc_" + node['node_name'] + "_" + class_form['class_id'];
+					var domid = "itc_" + node['node_name'];
 					var domid_add = "itc_add_" + node['node_name'] + "_" + class_form['class_id'];
 
 					var show = "this.style.display='none';"
@@ -126,12 +147,13 @@ class OmniEditBox extends OmniBox {
 					form_input += "<div id=\"" + domid + "\" style=\"display: none\"><textarea id=\"" + domid + "_txt\" class=\"form wider\" name=\"itc_" + node['node_name'] + "\" onkeyup=\"auto_expand(this)\" maxlength=\"" + node['length']  + "\" style=\"vertical-align: bottom\">" + item[node['node_name']] + "</textarea> <span onClick=\"" + hide + "\" class=\"item-tools\">x</span></div>";
 					form_input += "<hr />";
 				} else {
-					form_input += "<textarea class=\"form wider\" name=\"itc_" + node['node_name'] + "\" onkeyup=\"auto_expand(this)\" maxlength=\"" + node['length'] + "\">" + item[node['node_name']] + "</textarea>";
+					form_input += "<textarea class=\"form wider\" id=\"itc_" + node['node_name'] + "_txt\" name=\"itc_" + node['node_name'] + "\" onkeyup=\"auto_expand(this)\" maxlength=\"" + node['length'] + "\">" + item[node['node_name']] + "</textarea>";
 					form_input += "<hr />";
 				}
 			}
 			
-			var upload = "<input onClick=\"window.history.back()\"  type=\"button\" class=\"item-tools\" value=\"&#10008; Cancel\"/> <input class=\"item-tools\" type=\"submit\" name=\"submit\" value=\"&#10004; SAVE\"/><br />";			
+		    var upload = "<input onClick=\"window.history.back()\"  type=\"button\" class=\"item-tools\" value=\"&#10008; Cancel\"/>";
+		    upload += "<input class=\"item-tools\" type=\"button\" name=\"checkInput\" onClick=\"OmniEditController.checkInput()\"  value=\"&#10004 SAVE\"/><br />";
 		}
 
 		var inactive = "_inactive";
@@ -146,7 +168,7 @@ class OmniEditBox extends OmniBox {
 			inactive = "_inactive";				
 		}
 		
-		var form_display = "<form" + functions + ">"
+		var form_display = "<form" + form_id + functions + ">"
 			+ form_input
 			+ "<div style='float: right'>" + upload + "</div>"
 			+ toggleItemClass

@@ -192,7 +192,7 @@ class pageManager extends Document {
 		
 		if(isset($_GET['connect'])) {
 				$page = "<div class=\"item-section\">"
-					. "<div class=\"alertbox-show\">You are currently signed in.</div>"
+					. "<div id=\"alertbox\" class=\"alertbox-show\">You are currently signed in.</div>"
 			    	. "</div>";
 		} else if(isset($_POST['delete'])) {
 				$page = "<div class=\"item-section\">"
@@ -286,7 +286,7 @@ class pageManager extends Document {
 		$class_id = (isset($_POST['itc_class_id'])) ? $_POST['itc_class_id'] : key($classes);
 		
 		$javascript_omni_box = "<script>var OmniController = new OmniBox(" . $class_js_array . ", 'itemOmniBox');\n OmniController.toggle('" . $class_id . "');\n</script>";
-		$message = (isset($this->meta['message'])) ? "<center><div class=\"alertbox-show\">" . $this->meta['message'] . "</div></center>" : "";
+		$message = (isset($this->meta['message'])) ? "<center><div id=\"alertbox\" class=\"alertbox-show\">" . $this->meta['message'] . "</div></center>" : "<center><div id=\"alertbox\" class=\"alertbox-hide\"></div></center>";
 		
 		$createForm  = "<div class=\"item-section\"><div class=\"item-page\" id=\"itemOmniBox\">" . "</div></div>";
 		$createForm .= $javascript_omni_box;
@@ -301,7 +301,7 @@ class pageManager extends Document {
 		$class_id = $this->items[0]['class_id'];
 		
 		$javascript_omni_box = "<script>var OmniEditController = new OmniEditBox(" . $class_js_array . ", 'itemOmniEditBox');\n OmniEditController.set_active_item('" . $item_js_array . "'); OmniEditController.toggle('" . $class_id . "');\n</script>";
-		$message = (isset($this->meta['message'])) ? "<center><div class=\"alertbox-show\">" . $this->meta['message'] . "</div></center>" : "";
+		$message = (isset($this->meta['message'])) ? "<center><div id=\"alertbox\" class=\"alertbox-show\">" . $this->meta['message'] . "</div></center>" : "<center><div id=\"alertbox\" class=\"alertbox-hide\"></div></center>";
 		
 		$createForm  = "<div class=\"item-section\"><div class=\"item-page\" id=\"itemOmniEditBox\">" . "</div></div>";
 		$createForm .= $javascript_omni_box;
