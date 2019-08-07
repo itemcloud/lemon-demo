@@ -198,6 +198,10 @@ class pageManager extends Document {
 				$page = "<div class=\"item-section\">"
 		       	    . $this->displayItemBlog()
 					. "</div>";	
+		}  else if(isset($_POST['edit'])) {
+				$page = "<div class=\"item-section\">"
+		       	    . $this->displayOmniEditBox($_GET['id'])
+					. "</div>";	
 		} else if(isset($_GET['id'])) {	      	     
 				$page = "<div class=\"item-section\">"
 					. $this->displayItem()
@@ -289,6 +293,21 @@ class pageManager extends Document {
 		return $message . $createForm . $javascript_omni_box;
 	}	
 	
+
+	function displayOmniEditBox($item_id) {
+		$classes = $this->classes;
+		$class_js_array = json_encode($classes);
+		$item_js_array = json_encode($this->items[0]);
+		$class_id = $this->items[0]['class_id'];
+		
+		$javascript_omni_box = "<script>var OmniEditController = new OmniEditBox(" . $class_js_array . ", 'itemOmniEditBox');\n OmniEditController.set_active_item('" . $item_js_array . "'); OmniEditController.toggle('" . $class_id . "');\n</script>";
+		$message = (isset($this->meta['message'])) ? "<center><div class=\"alertbox-show\">" . $this->meta['message'] . "</div></center>" : "";
+		
+		$createForm  = "<div class=\"item-section\"><div class=\"item-page\" id=\"itemOmniEditBox\">" . "</div></div>";
+		$createForm .= $javascript_omni_box;
+		return $message . $createForm . $javascript_omni_box;
+	}	
+		
 	function handleXML() {		
 		$item_html = "<xml><items>";
 		foreach($this->items as $i) {			
@@ -435,26 +454,34 @@ class ItemDisplay {
 
 	function itemUserTools() {
 		if($this->owner) { 
+			$edit_button = "<form id=\"itemEditForm" . $this->item_id . "\" action=\"index.php?id=" . $this->item_id . "\" method=\"post\">"
+			. "<input type=\"hidden\" name=\"edit\" value=\"" . $this->item_id ."\"/>"
+			. "<div class=\"item-tools_grey float-right\" onclick=\"domId('itemEditForm" . $this->item_id . "').submit()\">edit </div>"
+			. "</form>";
+			
 			return "<form id=\"itemForm" . $this->item_id . "\" action=\"index.php?user=" . $this->item_user_id . "\" method=\"post\">"
 			. "<input type=\"hidden\" name=\"delete\" value=\"" . $this->item_id ."\"/>"
-			. "<div style=\"float: left;\" class=\"item-tools_grey\" onclick=\"domId('itemForm" . $this->item_id . "').submit()\">delete</div>"
-			. "</form>"; 
+			. "<div class=\"item-tools_grey float-right\" onclick=\"domId('itemForm" . $this->item_id . "').submit()\">delete</div>"
+			. "</form>" . $edit_button; 
 		}
 	}	
 	
 	function displayHTML() {
-		$item_html = "<div onmouseover=\"domId('userTools" . $this->item_id . "').style.display='block';\" onmouseout=\"domId('userTools" . $this->item_id . "').style.display='none';\" class=\"" . $this->box_class . "\">";
-		$item_html .= "<div style='position: relative;'><div id='userTools" . $this->item_id . "' style='position: absolute; right: 4px; top: 4px; display: none'>" . $this->userTools . "</div></div>";
+		$item_html = "<div onmouseover=\"domId('userTools" . $this->item_id . "').style.display='inline-block';\" onmouseout=\"domId('userTools" . $this->item_id . "').style.display='none';\" class=\"" . $this->box_class . "\">";
+		$item_html .= "<div class='item-settings'><div id='userTools" . $this->item_id . "' style='float: right; width: 120px; 4px; top: 4px; display: none'>" . $this->userTools . "</div></div>";
 		$item_html .= "<div class='item-nodes'>";
-		if($this->file) { $item_html .= $this->fileOutput; }
+		
 		if($this->title) { $item_html .= $this->titleOutput; }
-		$item_html .= "<div class='item-meta'>";
-		$item_html .= $this->metaOutput;
-		$item_html .= '<div class="clear"></div>';
+		if($this->file) { $item_html .= $this->fileOutput; }
 		if($this->info) { $item_html .= $this->infoOutput; }
+		
 		$item_html .= "</div>";
+		
+		$item_html .= "<div class='item-meta clear'>";
+		$item_html .= $this->metaOutput;
 		$item_html .= "</div>";
-		$item_html .= '</div>';
+		
+		$item_html .= "</div>";
 		return $item_html;
 	}
 	

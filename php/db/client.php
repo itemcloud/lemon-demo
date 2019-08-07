@@ -198,7 +198,13 @@ class itemManager {
 			$this->deleteUserItem($_POST['delete']);
 			$this->items = $this->getUserItems($_GET['user']);
 			return $this->items;
-		}		
+		} elseif(isset($_POST['itc_edit_item'])) {
+			global $message;
+			$message = "The item has been edited.";
+			$this->updateItem($_POST['itc_edit_item'], $_POST['itc_title'], $_POST['itc_info']);
+			$this->items = $this->getItemById($_POST['itc_edit_item']);
+			return $this->items;
+		}	
 		
 		if($this->addOns) {
 			foreach($this->addOns as $addOn) {
@@ -248,6 +254,14 @@ class itemManager {
 		$stream = $this->stream;
 		
 		$quest = "DELETE FROM item WHERE item_id='$delete_id'";
+		$stream->query($quest);		
+	}
+		
+	function updateItem($item_id, $title, $info) {
+		$stream = $this->stream;
+		$set = "SET title='$title', info='$info'";
+		
+		$quest = "UPDATE item $set WHERE item_id='$item_id'";
 		$stream->query($quest);		
 	}
 
