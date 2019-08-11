@@ -86,27 +86,25 @@ function joinForm (div) {
 	var join_form = "<div style='float: left; width: 540px;'>";
 	join_form += "<div style='text-align: left; color: #999; margin: 70px 70px;'>";
 
-	join_form += "<div style='font-size: 32px; margin-bottom: 20px; width: 100%'>Create an Account</div><small>Get connected with the collective! Start learning from fellow artists and sharing with the community. All members can post notes, links, files, photos, audio. Your account will help you keep track of all your favorite things.</small><br /><br />";
+	join_form += "<div style='font-size: 32px; margin-bottom: 20px; width: 100%'>Create an Account</div><small>Get connected! Add notes, links, files, photos, audio to your profile and keep track of your favorite things. Thank you.</small><br /><br />";
 	join_form += "<form id=\"joinForm\" action=\"./index.php?connect=1\" method=\"post\"><div>Email</div><div><input id='REG_email' name='e' class='form' value='" + email + "'/></div>";
 	join_form += "<div>Passcode</div><div><input id='REG_pass' name='p' type='password' class='form' value=''/></div>";
 	join_form += "<div>Confirm Passcode</div><div><input id='REG_cpass' type='password' class='form' value=''/></div>";
-	join_form += "<input name='REG_new' type='hidden' value='1'/></div>";
-
-
+	join_form += "<div><input name='REG_new' type='hidden' value='1'/></div>";
 
 	join_form += "<div style='font-size: 12px'><input id=\"REG_agree\" type=\"checkbox\" style=\"vertical-align: middle\"/>I agree to the <a onClick=\"alert('SERVICE AGREEMENT. Your account is provided 100% free of charge. "
-	+ " By uploading videos, photos, music and posting in community forums you are declaring that you have ownership or consent to distribute the content. Any copyright violations are solely"
+	+ " By uploading videos, photos, music and posting in community forums the account owner is expected to have ownership or consent to distribute the content. Any copyright violations are solely"
 	+ " the responsibility of the account owner. We reserve the right to terminate any account at any time for violations of this agreement and any other behaviour that is deemed inappropriate."
 	+ " We are not liable for any damages or lost revenue caused by temporary interruptions in service or uploading errors.')\">Service Agreement</a> and <a onclick=\"alert('We are a tech"
 	+ " company that respects your privacy and will never sell your data to third party advertisers. This site uses cookies to provide better services. You may request your account to be closed"
-	+ " at any time. All pertinent files will be removed from both public and private severs.')\">Privacy Policy</a>.</div>";
+	+ " at any time. All files will be removed from both public and private severs. Your data belongs to you.')\">Privacy Policy</a>.</div>";
 
 	join_form += "<div><input class='form_button' type=\"button\" onClick=\"sendForm('" + div + "')\" value=\"CREATE ACCOUNT\"/></div></form>";
 	
 	join_form += "</div>";
 	join_form += "</div>";
 	
-	document.getElementById(div).innerHTML = login_form + join_form + "<div style='clear: both'></div>";
+	domId(div).innerHTML = login_form + join_form + "<div style='clear: both'></div>";
 }
 
 //DISPLAY::Register:functions
