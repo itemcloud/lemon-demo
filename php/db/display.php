@@ -335,10 +335,8 @@ class pageManager extends Document {
 				$itemDisplay->fileOutput = $itemDisplay->downloadOverride();
 				break;
 			case 4: // item_type: photo
-				$float = " style=\"float: right\"";
-				if($count&1) { $float = " style=\"float: left\""; }
 				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id, $info_limit);
-				$itemDisplay->fileOutput = $itemDisplay->photoOverride($float);
+				$itemDisplay->fileOutput = $itemDisplay->photoOverride();
 				break;
 			case 5: // item_type: audio
 				$itemDisplay = new ItemDisplay($item, $this->ROOTweb, $box_class, $user_id, $info_limit);
@@ -408,6 +406,7 @@ class ItemDisplay {
 		$this->file = $item['file'];
 		
 		$this->info_limit = $info_limit;
+		$this->itemLink = "?id=" . $this->item_id;
 
 		$this->titleOutput = $this->titleDisplayHTML();
 		$this->infoOutput = $this->infoDisplayHTML();
@@ -423,13 +422,13 @@ class ItemDisplay {
 	}
 	
 	function titleDisplayHTML () {
-		$title_html = "<div class=\"item-title\" onclick=\"window.location='./?id=" . $this->item_id . "';\">" . $this->title . "</div>";
+		$title_html = "<div class=\"item-title\" onclick=\"window.location='" . $this->webroot . $this->itemLink . "'\">" . $this->title . "</div>";
 		return $title_html;
 	}
 	
 	function infoDisplayHTML () {
 		$limit = $this->info_limit;
-		$extra = "<div class=\"item-tools_grey\" onClick=\"window.location='./?id=" . $this->item_id . "'\" title=\"Show more\">...</div>";
+		$extra = "<div class=\"item-tools_grey\" onclick=\"window.location='" . $this->webroot . $this->itemLink . "'\" title=\"Show more\">...</div>";
 		$info_string = ($limit) ? chopString($this->info, $limit,  $extra) : $this->info;
 		$info_html = '<div class="item-info">' . nl2br($info_string) . '</div>';
 		return $info_html;
@@ -446,7 +445,7 @@ class ItemDisplay {
 	}
 	
 	function itemMetaLinks() {
-		$item_link_html = '<div class="item-link"><a href="./?id=' . $this->item_id . '">' . $this->webroot . '?item='  . $this->item_id . '</a></div>';
+		$item_link_html = "<div class=\"item-link\"><a onclick=\"window.location='" . $this->webroot . $this->itemLink . "'\">" . $this->webroot . "?item="  . $this->item_id . "</a></div>";
 		$date_html = '<div class="item-date">' . $this->dateService->date_time . '</div>';
 		
 		return "<div style='float: left;'>" . $item_link_html . $date_html . "</div>";
@@ -468,13 +467,12 @@ class ItemDisplay {
 	
 	function displayHTML() {
 		$item_html = "<div onmouseover=\"domId('userTools" . $this->item_id . "').style.display='inline-block';\" onmouseout=\"domId('userTools" . $this->item_id . "').style.display='none';\" class=\"" . $this->box_class . "\">";
-		$item_html .= "<div class='item-settings'><div id='userTools" . $this->item_id . "' style='float: right; width: 120px; 4px; top: 4px; display: none'>" . $this->userTools . "</div></div>";
-		$item_html .= "<div class='item-nodes'>";
+		$item_html .= "<div class='item-settings' style='position: relative'><div id='userTools" . $this->item_id . "' style='position: absolute; right: 0px; width: 120px; display: none'>" . $this->userTools . "</div></div>";
 		
+		$item_html .= "<div class='item-nodes'>";
 		if($this->title) { $item_html .= $this->titleOutput; }
 		if($this->file) { $item_html .= $this->fileOutput; }
 		if($this->info) { $item_html .= $this->infoOutput; }
-		
 		$item_html .= "</div>";
 		
 		$item_html .= "<div class='item-meta clear'>";
@@ -509,9 +507,9 @@ class ItemDisplay {
 		return $file_display;
 	}
 	
-	function photoOverride ($float) {
-		$onlick = "onclick=\"window.location='./?id=" . $this->item_id . "';\"";
-		$file_display = "<div $onlick class=\"item-link\"$float><div class=\"image-cell\"><img src=\"" . $this->webroot . $this->file . "\" width=\"100%\"></div></div>";
+	function photoOverride () {
+		$onlick = "onclick=\"window.location='" . $this->webroot . $this->itemLink . "'\"";
+		$file_display = "<div $onlick class=\"item-link\"><div class=\"image-cell\"><img src=\"" . $this->webroot . $this->file . "\" width=\"100%\"></div></div>";
 		return $file_display;
 	}
 	
