@@ -360,7 +360,7 @@ input.item_tools_inactive:hover {
 .item-tools_txt { height: 32px; width: 32px; font-size: 18px; text-align: center; font-family: Georgia, serif; margin: auto; padding: 0px; display: table-cell; vertical-align: middle; }
 .item-button { height: 32px; width: 32px; font-size: 18px; text-align: center; font-family: Georgia, serif; }
 
-div.inline-remove {
+div.inline-name, div.inline-remove {
 	display: inline-block;
 	white-space: nowrap;
 	margin-right: 4px;
