@@ -350,6 +350,34 @@ class itemManager {
 		}		
 		return $item_loot_array;
 	}		
+		function getItemsByClass($class_id, $limit, $start) {
+		 		
+		$quest = "SELECT item.*, user_items.user_id"
+		       . " FROM item, user_items"
+		       . " WHERE item.item_id=user_items.item_id"
+			   . " AND item.class_id=" . $class_id 
+		       . " ORDER BY user_items.date DESC";
+		       
+		$quest .= " LIMIT $start, $limit";
+
+		$item_loot = mysqli_query($this->stream, $quest);
+		$item_loot_array = NULL;
+		if($item_loot) {
+			while($loot=$item_loot->fetch_assoc()) {
+				$item_loot_array[] = $loot;
+			}
+		}
+
+		if(isset($this->addOns) == true) {
+			foreach($this->addOns as $addOn) {
+				if(isset($addOn['item-request'])) { 
+					$addon_request = new $addOn['item-request']($this->stream, $item_loot_array);
+					$item_loot_array = $addon_request->getAddOnLoot();
+				}
+			}
+		}					
+		return $item_loot_array;
+	}
 	
 	function deleteUserItem ($delete_id) {
 		$stream = $this->stream;
