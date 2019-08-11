@@ -289,8 +289,6 @@ input.item_tools_inactive:hover {
 }
 
 .item-title {
-	padding-bottom: 8px;
-	border-bottom: 2px solid #EEE;
 	margin-bottom: 8px;
 	
 	font-size: 2em;
@@ -301,6 +299,7 @@ input.item_tools_inactive:hover {
 
 .item-info {
 	margin: 8px 0px;
+	border-top: 2px solid #EEE;
 }
 
 .item-page .item-link {
@@ -316,9 +315,9 @@ input.item_tools_inactive:hover {
 .item-tools, .item-tools_grey, .item-tools_dark {
 	display: inline-block;
 	background-color: #333;
-	border-radius: 14px;
-	padding: 6px 10px;
-	margin-left: 4px;
+	border-radius: 16px;
+	margin: 0px 0px 8px 4px;
+	padding: 4px 8px;
 	color: #999;
 	font-size: 14px;
 	font-style: none;
@@ -335,6 +334,7 @@ input.item_tools_inactive:hover {
 	background-color: #DCDCDC;
 }
 
+
 .item-tools_grey {
 	background-color: #DCDCDC;
 	color: #333;
@@ -348,11 +348,31 @@ input.item_tools_inactive:hover {
 	background-color: #333;
 }
 
+/*SUPPORT FOR TOOLS*/
+.item-tools_grey {  float: left; }
+.item-meta .item-tools_grey { padding: 0px; }
+.item-meta .item-tools_grey div { margin-right: 4px; }
+.item-tools img, .item-tools_grey img, .item-tools_dark  img{
+	width: 28px;
+	vertical-align: middle;
+	margin: 2px;
+}
+.item-tools_txt { height: 32px; width: 32px; font-size: 18px; text-align: center; font-family: Georgia, serif; margin: auto; padding: 0px; display: table-cell; vertical-align: middle; }
+.item-button { height: 32px; width: 32px; font-size: 18px; text-align: center; font-family: Georgia, serif; }
+
+div.inline-remove {
+	display: inline-block;
+	white-space: nowrap;
+	margin-right: 4px;
+	padding-top: 6px;
+}
+
 .item-user {
 	float: left; 
 	width: 30px;
 	height: 30px; 
 	margin-right: 4px;
+	overflow: hidden;
 	background-color: #ccc;
 	background-image: url(./img/icon/user-default.png);
 	background-size: cover;
@@ -360,7 +380,14 @@ input.item_tools_inactive:hover {
 	border-radius: 50%;
 	cursor: pointer;
  }
+
  
+.avatar {
+	width: 120px;
+	height: 120px;
+	margin: 20px;
+}
+
 .item-date {
 	color: #aaa;
 	font-size: 11px;
