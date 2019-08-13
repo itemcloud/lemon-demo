@@ -224,7 +224,7 @@ class pageManager extends Document {
 
 	function displayItem() {
 		$box_class = "item-page";
-		if(!isset($this->items)){ return "No items found."; }	
+		if(!isset($this->items)){ return "<div>No items found.</div>"; }	
 		$item_html = $this->handleItemType(reset($this->items), $box_class, null, 0);
 		return $item_html;
 	}
@@ -244,7 +244,7 @@ class pageManager extends Document {
 		$col_holder= array();
 		$num = $start;
 
-		if(!isset($this->items)){ return "No items found."; }
+		if(!isset($this->items)){ return "<div>No items found.</div>"; }
 		
 		$count = 0;
 		foreach($this->items as $i) {			
@@ -269,15 +269,60 @@ class pageManager extends Document {
 		$info_limit = 2800;
 		$item_html = "";
 
-		if(!isset($this->items)){ return "No items found."; }
+		if(!isset($this->items)){ return "<div>No items found.</div>"; }
 
 		$count = 0;
 		foreach($this->items as $item) {
 			$item_html .= $this->handleItemType($item, $box_class, $info_limit, $count);
 			$count++;
 		}
-		return $item_html;
 		
+		$post_extra = "";
+		$separator = "";
+		foreach($_GET as $key => $value) {
+			if($key != 'start') {
+				$post_extra .= $separator . "$key=" . $value;
+				$separator = "&";
+			}
+		}
+		
+		global $CONFIG;		
+		$start = (isset($_GET['start'])) ? $_GET['start'] : 0;
+		$count = $CONFIG['item_count'];
+		$total = $this->items[0]['item_count'];
+		$item_html .= $this->pageItemBrowser($start, $count, $total, $post_extra);
+
+		return $item_html;
+	}
+
+	function pageItemBrowser($start, $count, $total, $post_extra) {
+		$item_html = "";
+		if($start >= 0) {
+			$new_start = $start - $count;
+			$new_start = ($new_start < $count) ? 0 : $new_start;
+			
+			$back_link = ($new_start == 0) ? "" : "start=$new_start";
+			if($post_extra && $back_link) { 
+				$back_link = "?" . $post_extra . "&" . $back_link;
+			} else if ($post_extra) {
+				$back_link = "?" . $post_extra;
+			} else if (!$post_extra && $back_link) {
+				$back_link = "?" . $back_link;
+			} 
+			
+			if($start > 0) { $item_html .= "<a href=\"./$back_link\"><div class=\"item-tools_dark float-left\">BACK</div></a>"; }
+		}
+
+		if($start + $count < $total) {
+			$new_start = $start + $count;
+			$next_link = "start=$new_start";
+			$next_link = ($post_extra)? "?" . $post_extra . "&" . $next_link : "?" . $next_link;
+			
+			$next_count_txt = (($total - ($start + $count)) < $count) ? ($total - ($start + $count)) : $count;
+			$item_html .= "<a href=\"./$next_link\"><div class=\"item-tools_dark float-right\">NEXT</div></a>";
+		}
+		
+		return $item_html;
 	}
 
 	function displayOmniBox() {
