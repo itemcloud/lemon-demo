@@ -490,7 +490,7 @@ class ItemDisplay {
 	}
 	
 	function itemMetaLinks() {
-		$item_link_html = "<div class=\"item-link\"><a onclick=\"window.location='" . $this->webroot . $this->itemLink . "'\">" . $this->webroot . "?item="  . $this->item_id . "</a></div>";
+		$item_link_html = "<div class=\"item-user-link\"><a onclick=\"window.location='" . $this->webroot . $this->itemLink . "'\">" . $this->webroot . "?item="  . $this->item_id . "</a></div>";
 		$date_html = '<div class="item-date">' . $this->dateService->date_time . '</div>';
 		
 		return "<div style='float: left;'>" . $item_link_html . $date_html . "</div>";
@@ -544,7 +544,7 @@ class ItemDisplay {
 		$fn = substr($fn, strrpos($fn, '/')+1, strlen($fn));
 		$file_name_text = chopString($fn, 54, '...');
 		
-		$file_display = '<div class="item-link"><center>'
+		$file_display = '<div class="item-link file-link"><center>'
 				  . '<div class="file_text">' . $file_name_text . '</div>'
 				  . '<a href="' . $this->file . '">'
 				  . '<div class="file_button">Download File</div></a>'
@@ -559,14 +559,14 @@ class ItemDisplay {
 	}
 	
 	function audioOverride () {
-		$file_display = '<audio style="width: 100%" controls><source src="' 
-			. $this->webroot .  $this->file . '" type="audio/mpeg">Download to play audio.</audio>';
+		$file_display = '<div class="item-link"><audio style="width: 100%" controls><source src="' 
+			. $this->webroot .  $this->file . '" type="audio/mpeg">Download to play audio.</audio></div>';
 		return $file_display;
 	}
 	
 	function videoOverride () {
-		$file_display =  '<video width="100%" controls><source src="' 
-			. $this->webroot . $this->file . '" type="audio/mpeg">Download to play video.</video>';
+		$file_display =  '<div class="item-link"><video width="100%" controls><source src="' 
+			. $this->webroot . $this->file . '" type="audio/mpeg">Download to play video.</video></div>';
 		return $file_display;
 	} 				
 }
