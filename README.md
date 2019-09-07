@@ -1,7 +1,7 @@
 # lemon
 The most basic framework for content sharing.
 An open-source project designed for educational purposes. Lemon establishes a standard data
-format for media storage, syndication and display.
+format for media storage, syndication and dynamic web layouts.
 
 # Database
 Create a mysql database: 'itemcloud-db'.
